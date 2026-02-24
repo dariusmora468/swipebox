@@ -1,0 +1,9 @@
+{
+  "name": "SwipeBox",
+  "short_name": "SwipeBox",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#6366f1",
+  "description": "AI-powered email triage"
+}
