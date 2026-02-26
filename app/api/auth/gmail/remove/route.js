@@ -1,45 +1,45 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import {
-  parseAccountsCookie,
-  serializeAccountsCookie,
-  removeAccount,
-} from "../../../../lib/gmail";
+import { parseAccountsCookie, serializeAccountsCookie } from "../../../../../lib/gmail";
 
 export async function POST(request) {
-  const cookieStore = cookies();
-  const accountsCookie = cookieStore.get("swipebox_accounts");
-
-  if (!accountsCookie) {
-    return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
-  }
-
   try {
     const { email } = await request.json();
-    const accounts = parseAccountsCookie(accountsCookie.value);
-    const updated = removeAccount(accounts, email);
-
-    if (updated.length === 0) {
-      // Last account removed, clear cookie
-      const response = NextResponse.json({ success: true, action: "logged_out" });
-      response.cookies.delete("swipebox_accounts");
-      return response;
+    if (!email) {
+      return NextResponse.json({ error: "Email required" }, { status: 400 });
     }
 
-    const response = NextResponse.json({ success: true, remaining: updated.length });
-    response.cookies.set("swipebox_accounts", serializeAccountsCookie(updated), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 30,
-      path: "/",
-    });
+    const cookieStore = cookies();
+    const accountsCookie = cookieStore.get("gmail_accounts");
+
+    if (!accountsCookie?.value) {
+      return NextResponse.json({ error: "No accounts found" }, { status: 404 });
+    }
+
+    const accounts = parseAccountsCookie(accountsCookie.value);
+    const filtered = accounts.filter((a) => a.email !== email);
+
+    if (filtered.length === accounts.length) {
+      return NextResponse.json({ error: "Account not found" }, { status: 404 });
+    }
+
+    const response = NextResponse.json({ success: true, remaining: filtered.length });
+
+    if (filtered.length === 0) {
+      response.cookies.delete("gmail_accounts");
+    } else {
+      response.cookies.set("gmail_accounts", serializeAccountsCookie(filtered), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 30 * 24 * 60 * 60,
+        path: "/",
+      });
+    }
+
     return response;
-  } catch (err) {
-    console.error("Remove account error:", err);
-    return NextResponse.json(
-      { error: "remove_failed", details: err.message },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error("Remove account error:", error);
+    return NextResponse.json({ error: "Failed to remove account" }, { status: 500 });
   }
 }
