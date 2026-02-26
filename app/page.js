@@ -205,7 +205,7 @@ function EmailModal({ email, onClose, onSwipe, onForward, onSnooze }) {
             fontSize: "14px", color: "#cbd5e1", lineHeight: 1.75,
             whiteSpace: "pre-wrap", wordBreak: "break-word",
           }}>
-            {email.body || email.preview}
+            {(email.body || email.preview).split("\n").filter(line => line.trim()).map((paragraph, i) => React.createElement("p", {key: i, style: {margin: "0 0 8px", lineHeight: 1.7}}, paragraph))}
           </div>
         </div>
 
@@ -616,7 +616,7 @@ function EmailCard({ email, isTop, onSwipe, onTap, style }) {
           </div>
 
           <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#f1f5f9", margin: "0 0 10px", lineHeight: 1.35 }}>{email.subject}</h3>
-          <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: 1.65, margin: "0 0 16px" }}>{email.preview}</p>
+          <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: 1.65, margin: "0 0 16px", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{email.summary || email.preview}</p>
 
           {/* Smart Action Chips on card */}
           {isTop && email.smartActions && email.smartActions.length > 0 && (
