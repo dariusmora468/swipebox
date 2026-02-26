@@ -101,7 +101,7 @@ function ActionBadge({ direction, opacity, hasReply }) {
     right: { label: hasReply ? "SEND" : "DONE", color: "#34d399", glow: "rgba(52,211,153,0.3)" },
     left: { label: "READ", color: "#fb923c", glow: "rgba(251,146,60,0.3)" },
     up: { label: "SNOOZE", color: "#818cf8", glow: "rgba(129,140,248,0.3)" },
-    down: { label: "DELETE", color: "#f87171", glow: "rgba(248,113,113,0.3)" },
+    down: { label: "UNSUB", color: "#a855f7", glow: "rgba(168,85,247,0.3)" },
   };
   const c = config[direction];
   if (!c) return null;
@@ -336,11 +336,63 @@ function EmailModal({ email, onClose, onSwipe, onForward, onSnooze }) {
           }}>Snooze</button>
           <button onClick={() => onSwipe("down")} style={{
             padding: "12px 16px", borderRadius: "12px",
-            border: "1px solid rgba(248,113,113,0.3)", background: "rgba(248,113,113,0.08)",
-            color: "#f87171", fontSize: "13px", fontWeight: 700, cursor: "pointer",
-          }}>Delete</button>
+            border: "1px solid rgba(168,85,247,0.3)", background: "rgba(168,85,247,0.08)",
+            color: "#a855f7", fontSize: "13px", fontWeight: 700, cursor: "pointer",
+          }}>Unsub</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+
+// --- Unsubscribe Overlay ---
+function UnsubscribeOverlay({ url, sender, onClose }) {
+  const [loading, setLoading] = useState(true);
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 300,
+      background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)",
+      display: "flex", flexDirection: "column",
+      animation: "fadeIn 0.2s ease",
+    }}>
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.1)",
+        background: "rgba(18,18,26,0.95)",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ fontSize: "20px" }}>{"🔕"}</span>
+          <div>
+            <div style={{ color: "#f1f5f9", fontWeight: 700, fontSize: "14px" }}>Unsubscribe from {sender}</div>
+            <div style={{ color: "#64748b", fontSize: "11px", marginTop: "2px" }}>Complete the unsubscribe on this page, then tap Done</div>
+          </div>
+        </div>
+        <button onClick={onClose} style={{
+          padding: "10px 20px", borderRadius: "12px",
+          background: "rgba(168,85,247,0.15)", border: "1px solid rgba(168,85,247,0.3)",
+          color: "#a855f7", fontWeight: 700, fontSize: "14px", cursor: "pointer",
+        }}>Done</button>
+      </div>
+      {loading && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "40px", color: "#64748b" }}>
+          Loading unsubscribe page...
+        </div>
+      )}
+      <iframe
+        src={url}
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          setLoading(false);
+          window.open(url, "_blank");
+          onClose();
+        }}
+        style={{
+          flex: 1, width: "100%", border: "none",
+          background: "#fff", display: loading ? "none" : "block",
+        }}
+        sandbox="allow-scripts allow-forms allow-same-origin allow-popups"
+      />
     </div>
   );
 }
@@ -541,6 +593,20 @@ function EmailCard({ email, isTop, onSwipe, onTap, style }) {
               background: `${email.color || "#94a3b8"}15`, border: `1px solid ${email.color || "#94a3b8"}25`,
               color: email.color || "#94a3b8", fontSize: "11px", fontWeight: 600, letterSpacing: "0.3px", textTransform: "uppercase",
             }}>{email.category}</div>
+            {email.previouslyUnsubscribed && (
+              <div style={{
+                padding: "4px 12px", borderRadius: "8px",
+                background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.2)",
+                color: "#a855f7", fontSize: "11px", fontWeight: 600, textTransform: "uppercase",
+              }}>Previously Unsubscribed</div>
+            )}
+            {email.suggestUnsubscribe && !email.previouslyUnsubscribed && (
+              <div style={{
+                padding: "4px 12px", borderRadius: "8px",
+                background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.2)",
+                color: "#fb923c", fontSize: "11px", fontWeight: 600, textTransform: "uppercase",
+              }}>Swipe \u2193 to Unsub</div>
+            )}
             {email.urgency === "high" && (
               <div style={{ padding: "4px 12px", borderRadius: "8px", background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.2)", color: "#f87171", fontSize: "11px", fontWeight: 600, textTransform: "uppercase" }}>Urgent</div>
             )}
@@ -583,7 +649,7 @@ function EmailCard({ email, isTop, onSwipe, onTap, style }) {
         {!email.aiReply && isTop && (
           <div style={{ padding: "0 28px 28px" }}>
             <div style={{ padding: "12px", borderRadius: "14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center", fontSize: "13px", color: "#475569" }}>
-              No reply needed — tap to view full email
+              No reply needed â tap to view full email
             </div>
           </div>
         )}
@@ -625,7 +691,7 @@ function CompletionScreen({ stats, onRefresh }) {
           { label: "Replied", count: stats.sent, color: "#34d399", icon: "\u2192" },
           { label: "Read", count: stats.read, color: "#fb923c", icon: "\u2713" },
           { label: "Snoozed", count: stats.snoozed, color: "#818cf8", icon: "\u23F0" },
-          { label: "Deleted", count: stats.deleted, color: "#f87171", icon: "\u{1F5D1}" },
+          { label: "Unsubbed", count: stats.unsubscribed, color: "#a855f7", icon: "\u{1F515}" },
         ].map((s) => (
           <div key={s.label} style={{ padding: "18px", borderRadius: "16px", background: `${s.color}08`, border: `1px solid ${s.color}15` }}>
             <div style={{ fontSize: "28px", fontWeight: 800, color: s.color }}>{s.count}</div>
@@ -706,7 +772,7 @@ export default function SwipeBox() {
   const [emails, setEmails] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [history, setHistory] = useState([]);
-  const [stats, setStats] = useState({ sent: 0, read: 0, snoozed: 0, deleted: 0 });
+  const [stats, setStats] = useState({ sent: 0, read: 0, snoozed: 0, unsubscribed: 0 });
   const [lastAction, setLastAction] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -716,6 +782,15 @@ export default function SwipeBox() {
   const [showSettings, setShowSettings] = useState(false);
   const [showSnoozePicker, setShowSnoozePicker] = useState(false);
   const [pendingSnoozeEmail, setPendingSnoozeEmail] = useState(null);
+  const [showUnsubOverlay, setShowUnsubOverlay] = useState(false);
+  const [unsubUrl, setUnsubUrl] = useState(null);
+  const [unsubSender, setUnsubSender] = useState("");
+  const [unsubscribedSenders, setUnsubscribedSenders] = useState(() => {
+    if (typeof window !== "undefined") {
+      try { return JSON.parse(localStorage.getItem("swipebox_unsubscribed") || "[]"); } catch { return []; }
+    }
+    return [];
+  });
 
   useEffect(() => { fetchEmails(); }, []);
   useEffect(() => { if (lastAction) { setShowToast(true); const t = setTimeout(() => setShowToast(false), 2500); return () => clearTimeout(t); } }, [lastAction]);
@@ -751,7 +826,7 @@ export default function SwipeBox() {
       setEmails(data.emails || []);
       setAccounts(data.accounts || []);
       setHistory([]);
-      setStats({ sent: 0, read: 0, snoozed: 0, deleted: 0 });
+      setStats({ sent: 0, read: 0, snoozed: 0, unsubscribed: 0 });
     } catch (err) { console.error("Error:", err); setIsAuthenticated(false); }
     setLoading(false);
   }
@@ -768,14 +843,14 @@ export default function SwipeBox() {
       return;
     }
 
-    const actionMap = { right: "send", left: "mark_read", down: "delete" };
-    const statMap = { right: "sent", left: "read", down: "deleted" };
+    const actionMap = { right: "send", left: "mark_read", down: "unsubscribe" };
+    const statMap = { right: "sent", left: "read", down: "unsubscribed" };
 
     const rightLabel = replyText ? `Reply sent to ${current.from}` : `Done: ${current.from}`;
     const labelMap = {
       right: rightLabel,
       left: `Marked read: ${current.from}`,
-      down: `Deleted: ${current.from}`,
+      down: `Unsubscribed: ${current.from}`,
     };
 
     setEmails((e) => e.slice(1));
@@ -785,15 +860,45 @@ export default function SwipeBox() {
 
     setActionInProgress(true);
     try {
-      await fetch("/api/emails/action", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: actionMap[direction],
-          email: current,
-          replyText: direction === "right" ? replyText : undefined,
-        }),
-      });
+      if (direction === "down") {
+        // Unsubscribe flow
+        const unsubRes = await fetch("/api/emails/unsubscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messageId: current.id, accountEmail: current.account }),
+        });
+        const unsubData = await unsubRes.json();
+        
+        // Track the sender as unsubscribed
+        const newSender = { email: current.email, name: current.from, date: new Date().toISOString() };
+        setUnsubscribedSenders(prev => {
+          const updated = [...prev.filter(s => s.email !== current.email), newSender];
+          if (typeof window !== "undefined") {
+            localStorage.setItem("swipebox_unsubscribed", JSON.stringify(updated));
+            // Also set cookie for server-side access
+            document.cookie = "swipebox_unsubscribed=" + btoa(JSON.stringify(updated)) + ";path=/;max-age=31536000";
+          }
+          return updated;
+        });
+        
+        if (unsubData.method === "link" && unsubData.unsubscribeUrl) {
+          // Open overlay for manual unsubscribe
+          setUnsubUrl(unsubData.unsubscribeUrl);
+          setUnsubSender(current.from);
+          setShowUnsubOverlay(true);
+        }
+        // If one-click succeeded or no unsub found, the toast already shows
+      } else {
+        await fetch("/api/emails/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: actionMap[direction],
+            email: current,
+            replyText: direction === "right" ? replyText : undefined,
+          }),
+        });
+      }
     } catch (err) { console.error("Action failed:", err); }
     setActionInProgress(false);
   }, [emails, actionInProgress]);
@@ -842,7 +947,7 @@ export default function SwipeBox() {
     const last = history[history.length - 1];
     setHistory((h) => h.slice(0, -1));
     setEmails((e) => [last.email, ...e]);
-    const statMap = { right: "sent", left: "read", up: "snoozed", down: "deleted" };
+    const statMap = { right: "sent", left: "read", up: "snoozed", down: "unsubscribed" };
     setStats((s) => ({ ...s, [statMap[last.direction]]: s[statMap[last.direction]] - 1 }));
     setShowToast(false);
   }, [history]);
@@ -859,14 +964,14 @@ export default function SwipeBox() {
     } catch (err) { console.error("Remove failed:", err); }
   }, []);
 
-  const actionColors = { right: "#34d399", left: "#fb923c", up: "#818cf8", down: "#f87171" };
+  const actionColors = { right: "#34d399", left: "#fb923c", up: "#818cf8", down: "#a855f7" };
 
   if (isAuthenticated === null || (isAuthenticated && loading)) {
     return <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}><LoadingScreen message={loadingMessage} /></div>;
   }
   if (isAuthenticated === false) return <LoginScreen />;
 
-  const totalProcessed = stats.sent + stats.read + stats.snoozed + stats.deleted;
+  const totalProcessed = stats.sent + stats.read + stats.snoozed + stats.unsubscribed;
   const totalEmails = totalProcessed + emails.length;
   const progressPercent = totalEmails > 0 ? (totalProcessed / totalEmails) * 100 : 0;
 
@@ -929,7 +1034,7 @@ export default function SwipeBox() {
         {emails.length > 0 ? (
           <>
             <div style={{ display: "flex", justifyContent: "center", gap: "24px", padding: "14px 20px 8px", fontSize: "11px", color: "#475569", fontWeight: 600, letterSpacing: "0.5px", textTransform: "uppercase" }}>
-              <span>{"\u2190"} Mark Read</span><span>{"\u2191"} Snooze</span><span>{"\u2193"} Delete</span><span>{emails[0]?.aiReply ? "Send" : "Done"} {"\u2192"}</span>
+              <span>{"\u2190"} Mark Read</span><span>{"\u2191"} Snooze</span><span>{"\u2193"} Unsub</span><span>{emails[0]?.aiReply ? "Send" : "Done"} {"\u2192"}</span>
             </div>
             <div style={{ flex: 1, width: "100%", maxWidth: "500px", position: "relative", padding: "8px 20px 20px", minHeight: "500px" }}>
               {emails.slice(0, 2).reverse().map((email, i) => {
@@ -938,7 +1043,7 @@ export default function SwipeBox() {
               })}
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "14px", padding: "16px 20px 36px" }}>
-              <ActionButton icon={"\u{1F5D1}"} label="Delete" color="#f87171" size={46} onClick={() => handleSwipe("down")} disabled={actionInProgress} />
+              <ActionButton icon={"\u{1F515}"} label="Unsub" color="#a855f7" size={46} onClick={() => handleSwipe("down")} disabled={actionInProgress} />
               <ActionButton icon={"\u2713"} label="Mark Read" color="#fb923c" size={54} onClick={() => handleSwipe("left")} disabled={actionInProgress} />
               <ActionButton icon={emails[0]?.aiReply ? "\u2197" : "\u2713"} label={emails[0]?.aiReply ? "Send Reply" : "Done"} color="#34d399" size={64} onClick={() => handleSwipe("right", emails[0]?.aiReply)} disabled={actionInProgress} />
               <ActionButton icon={"\u23F0"} label="Snooze" color="#818cf8" size={54} onClick={() => handleSwipe("up")} disabled={actionInProgress} />
@@ -965,6 +1070,14 @@ export default function SwipeBox() {
       )}
 
       {/* Snooze Picker */}
+      {showUnsubOverlay && unsubUrl && (
+        <UnsubscribeOverlay
+          url={unsubUrl}
+          sender={unsubSender}
+          onClose={() => { setShowUnsubOverlay(false); setUnsubUrl(null); }}
+        />
+      )}
+
       {showSnoozePicker && (
         <SnoozePicker
           onSelect={handleSnoozeSelect}

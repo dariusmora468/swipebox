@@ -33,12 +33,15 @@ export async function POST(request) {
           if (tokens) await unsnoozeEmail(tokens, emailId);
         })
       );
-      return NextResponse.json({ success: true, action: "unsnooze_batch", count: results.filter(r => r.status === "fulfilled").length });
+      return NextResponse.json({
+        success: true,
+        action: "unsnooze_batch",
+        count: results.filter((r) => r.status === "fulfilled").length,
+      });
     }
 
     // Route to the correct account
     const tokens = getAccountTokens(accounts, email.account);
-
     if (!tokens) {
       return NextResponse.json(
         { error: "account_not_found", details: `No tokens for ${email.account}` },
@@ -68,6 +71,11 @@ export async function POST(request) {
 
       case "delete":
         await trashEmail(tokens, email.id);
+        break;
+
+      case "unsubscribe":
+        // Mark as read (the actual unsubscribe is handled by /api/emails/unsubscribe)
+        await markAsRead(tokens, email.id);
         break;
 
       case "snooze":

@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { parseAccountsCookie, fetchAllAccountEmails } from "../../../lib/gmail";
 import { processEmails } from "../../../lib/ai";
 
-export async function GET() {
+export async function GET(request) {
   const cookieStore = cookies();
   const accountsCookie = cookieStore.get("swipebox_accounts");
 
@@ -12,9 +12,21 @@ export async function GET() {
   }
 
   const accounts = parseAccountsCookie(accountsCookie.value);
-
   if (accounts.length === 0) {
     return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+  }
+
+  // Get unsubscribed senders from cookie
+  const unsubCookie = cookieStore.get("swipebox_unsubscribed");
+  let unsubscribedSenders = [];
+  if (unsubCookie) {
+    try {
+      unsubscribedSenders = JSON.parse(
+        Buffer.from(unsubCookie.value, "base64").toString("utf-8")
+      );
+    } catch {
+      unsubscribedSenders = [];
+    }
   }
 
   try {
@@ -28,7 +40,15 @@ export async function GET() {
       });
     }
 
-    const processed = await processEmails(emails);
+    // Flag emails from previously unsubscribed senders
+    const flaggedEmails = emails.map((email) => ({
+      ...email,
+      previouslyUnsubscribed: unsubscribedSenders.some(
+        (s) => s.email.toLowerCase() === email.email.toLowerCase()
+      ),
+    }));
+
+    const processed = await processEmails(flaggedEmails);
 
     return NextResponse.json({
       emails: processed,
