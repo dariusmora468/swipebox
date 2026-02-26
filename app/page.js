@@ -205,7 +205,7 @@ function EmailModal({ email, onClose, onSwipe, onForward, onSnooze }) {
             fontSize: "14px", color: "#cbd5e1", lineHeight: 1.75,
             whiteSpace: "pre-wrap", wordBreak: "break-word",
           }}>
-            {(email.body || email.preview).split("\n").filter(line => line.trim()).map((paragraph, i) => React.createElement("p", {key: i, style: {margin: "0 0 8px", lineHeight: 1.7}}, paragraph))}
+            {(email.body || email.preview || "").split("\n").filter(line => line.trim()).map((paragraph, i) => (<p key={i} style={{ margin: "0 0 8px", lineHeight: 1.7 }}>{paragraph}</p>))}
           </div>
         </div>
 
