@@ -327,24 +327,31 @@ export default function SwipeBox() {
             </div>
 
             {/* Swipe Hints + Customize (bottom) */}
-            <div style={{ width: "100%", padding: "12px 20px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
-              <div style={{ display: "flex", justifyContent: "center", gap: "20px", fontSize: "11px", color: "#9CA3AF", fontWeight: 600, letterSpacing: "0.5px", textTransform: "uppercase" }}>
-                <span>{"\u2190"} {(AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.left) || {}).label || "Mark Read"}</span>
-                <span>{"\u2191"} {(AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.up) || {}).label || "Snooze"}</span>
-                <span>{"\u2193"} {(AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.down) || {}).label || "Unsub"}</span>
-                <span>{(AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.right) || {}).label || "Done"} {"\u2192"}</span>
+            <div style={{ width: "100%", padding: "16px 24px 28px", display: "flex", flexDirection: "column", alignItems: "center", gap: "14px" }}>
+              <div style={{ display: "flex", justifyContent: "space-around", width: "100%", maxWidth: "340px" }}>
+                {[
+                  { arrow: "\u2190", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.left) || {}).label || "Read" },
+                  { arrow: "\u2191", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.up) || {}).label || "Snooze" },
+                  { arrow: "\u2193", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.down) || {}).label || "Unsub" },
+                  { arrow: "\u2192", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.right) || {}).label || "Done" },
+                ].map((item, idx) => (
+                  <div key={idx} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", minWidth: "56px" }}>
+                    <span style={{ fontSize: "18px", color: "#B0B5C0", fontWeight: 300, lineHeight: 1 }}>{item.arrow}</span>
+                    <span style={{ fontSize: "10px", color: "#9CA3AF", fontWeight: 600, letterSpacing: "0.5px", textTransform: "uppercase", textAlign: "center", lineHeight: 1.2 }}>{item.label}</span>
+                  </div>
+                ))}
               </div>
               <button
                 onClick={() => setShowSwipeSettings(true)}
                 style={{
-                  display: "flex", alignItems: "center", gap: "6px",
-                  padding: "6px 14px", borderRadius: "20px",
-                  background: "rgba(79,70,229,0.06)", border: "1px solid rgba(79,70,229,0.1)",
-                  color: "#4F46E5", fontSize: "11px", fontWeight: 600,
+                  display: "flex", alignItems: "center", gap: "5px",
+                  padding: "5px 12px", borderRadius: "20px",
+                  background: "transparent", border: "1px solid rgba(0,0,0,0.06)",
+                  color: "#B0B5C0", fontSize: "10px", fontWeight: 600,
                   cursor: "pointer", letterSpacing: "0.3px",
                 }}
               >
-                <span style={{ fontSize: "13px" }}>{"\u2699"}</span> Customize
+                <span style={{ fontSize: "11px" }}>{"\u2699"}</span> Customize
               </button>
             </div>
           </>
