@@ -4,6 +4,14 @@ All notable changes to SwipeBox are documented here. Most recent changes at top.
 
 ---
 
+## [e15862f] - 2026-02-27
+### Fix: Implement fetchAllAccountEmails and proper error handling
+- **Root cause identified:** `fetchAllAccountEmails` was imported by the email API route but never implemented in `gmail.js`. The import resolved to `undefined`, causing a TypeError on every call, which was silently caught and returned as an empty array — making the app show "Inbox Zero" instead of an error.
+- **Files modified:**
+  - `lib/gmail.js` - Added `fetchAllAccountEmails()` function that fetches emails from Gmail API for all connected accounts using `gmail.users.messages.list` and `gmail.users.messages.get`, with proper auth error propagation
+  - `app/api/emails/route.js` - Updated catch block to detect auth errors via `isAuthError` flag, `error.code === 401`, or `invalid_grant` message
+  - `app/page.js` - Added `fetchError` state, error handling for non-200 API responses, and a full-screen error UI with "Try Again" and "Reconnect Gmail" buttons
+
 ## [b681dea] - 2026-02-27
 ### Refactor: Split page.js monolith into modular components
 - **Files added:**
