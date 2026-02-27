@@ -7,7 +7,7 @@ const AVAILABLE_ACTIONS = [
   { id: 'unsubscribe', label: 'Unsubscribe', icon: '\u{1F6AB}', color: '#B07070' },
   { id: 'done', label: 'Reply / Send', icon: '\u2713', color: '#7A8C6E' },
   { id: 'archive', label: 'Archive', icon: '\u{1F4E6}', color: '#6B5E54' },
-  { id: 'delete', label: 'Delete', icon: '\u{1F5D1}\uFE0F', color: '#B07070' },
+  { id: 'delete', label: 'Unsub / Delete', icon: '\u{1F5D1}\uFE0F', color: '#B07070' },
   { id: 'star', label: 'Star', icon: '\u2B50', color: '#B8963E' },
 ];
 
@@ -25,18 +25,30 @@ const DEFAULT_MAPPINGS = {
   down: 'delete',
 };
 
+// Bump this version whenever DEFAULT_MAPPINGS change.
+// Stale localStorage from an older version is automatically discarded.
+const MAPPINGS_VERSION = 2;
+
 function getSwipeMappings() {
   if (typeof window === 'undefined') return DEFAULT_MAPPINGS;
   try {
+    const savedVersion = localStorage.getItem('swipebox_mappings_version');
+    // If no version or old version, wipe stale mappings and use fresh defaults
+    if (!savedVersion || Number(savedVersion) < MAPPINGS_VERSION) {
+      localStorage.removeItem('swipebox_swipe_mappings');
+      localStorage.setItem('swipebox_mappings_version', String(MAPPINGS_VERSION));
+      return { ...DEFAULT_MAPPINGS };
+    }
     const saved = localStorage.getItem('swipebox_swipe_mappings');
     if (saved) return { ...DEFAULT_MAPPINGS, ...JSON.parse(saved) };
   } catch {}
-  return DEFAULT_MAPPINGS;
+  return { ...DEFAULT_MAPPINGS };
 }
 
 function saveSwipeMappings(mappings) {
   if (typeof window !== 'undefined') {
     localStorage.setItem('swipebox_swipe_mappings', JSON.stringify(mappings));
+    localStorage.setItem('swipebox_mappings_version', String(MAPPINGS_VERSION));
   }
 }
 

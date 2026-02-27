@@ -123,22 +123,27 @@ export default function SwipeBox() {
     }
   }
 
+  // Resolve swipe direction → action using current mappings
+  const getActionForDirection = useCallback((direction) => {
+    return swipeMappings[direction] || "mark_read";
+  }, [swipeMappings]);
+
   const handleSwipe = useCallback(async (direction, replyText) => {
     if (emails.length === 0 || actionInProgress) return;
     setExpandedEmail(null);
     const current = emails[0];
+    const action = getActionForDirection(direction);
 
-    // LEFT = Snooze (opens picker)
-    if (direction === "left") {
+    // === SNOOZE: opens picker, doesn't remove email yet ===
+    if (action === "snooze") {
       setPendingSnoozeEmail(current);
       setShowSnoozePicker(true);
       return;
     }
 
-    // UP = Reply / Send AI Draft
-    if (direction === "up") {
+    // === REPLY / SEND (done): either auto-send AI draft or open compose ===
+    if (action === "done") {
       if (current.aiReply) {
-        // Has AI draft — send it immediately
         setEmails((e) => e.slice(1));
         setHistory((h) => [...h, { email: current, direction }]);
         setStats((s) => ({ ...s, sent: s.sent + 1 }));
@@ -153,33 +158,96 @@ export default function SwipeBox() {
         } catch (err) { console.error("Reply failed:", err); }
         setActionInProgress(false);
       } else {
-        // No AI draft — open compose screen
         setComposeState({ email: current, mode: "reply" });
       }
       return;
     }
 
-    // RIGHT = Mark as Read
-    // DOWN = Delete / Unsubscribe
-    const isDown = direction === "down";
-    const isUnsub = isDown && (current.suggestUnsubscribe || current.previouslyUnsubscribed);
+    // === MARK READ ===
+    if (action === "mark_read") {
+      setEmails((e) => e.slice(1));
+      setHistory((h) => [...h, { email: current, direction }]);
+      setStats((s) => ({ ...s, read: s.read + 1 }));
+      setLastAction({ direction, label: `Marked read: ${current.from}` });
+      setActionInProgress(true);
+      try {
+        await fetch("/api/emails/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "mark_read", email: current }),
+        });
+      } catch (err) { console.error("Mark read failed:", err); }
+      setActionInProgress(false);
+      return;
+    }
 
-    const statKey = isDown ? (isUnsub ? "unsubscribed" : "read") : "read";
-    const label = direction === "right"
-      ? `Marked read: ${current.from}`
-      : isUnsub
-        ? `Unsubscribed: ${current.from}`
-        : `Deleted: ${current.from}`;
+    // === ARCHIVE ===
+    if (action === "archive") {
+      setEmails((e) => e.slice(1));
+      setHistory((h) => [...h, { email: current, direction }]);
+      setStats((s) => ({ ...s, read: s.read + 1 }));
+      setLastAction({ direction, label: `Archived: ${current.from}` });
+      setActionInProgress(true);
+      try {
+        await fetch("/api/emails/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "archive", email: current }),
+        });
+      } catch (err) { console.error("Archive failed:", err); }
+      setActionInProgress(false);
+      return;
+    }
 
-    setEmails((e) => e.slice(1));
-    setHistory((h) => [...h, { email: current, direction }]);
-    setStats((s) => ({ ...s, [statKey]: s[statKey] + 1 }));
-    setLastAction({ direction, label });
+    // === DELETE (unsub + delete combo) ===
+    if (action === "delete") {
+      setEmails((e) => e.slice(1));
+      setHistory((h) => [...h, { email: current, direction }]);
+      setStats((s) => ({ ...s, unsubscribed: s.unsubscribed + 1 }));
+      setLastAction({ direction, label: `Unsub + deleted: ${current.from}` });
+      setActionInProgress(true);
+      try {
+        // Step 1: Try to unsubscribe (auto one-click or get link)
+        const unsubRes = await fetch("/api/emails/unsubscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messageId: current.id, accountEmail: current.account }),
+        });
+        const unsubData = await unsubRes.json();
+        const newSender = { email: current.email, name: current.from, date: new Date().toISOString() };
+        setUnsubscribedSenders(prev => {
+          const updated = [...prev.filter(s => s.email !== current.email), newSender];
+          if (typeof window !== "undefined") {
+            localStorage.setItem("swipebox_unsubscribed", JSON.stringify(updated));
+            document.cookie = "swipebox_unsubscribed=" + btoa(JSON.stringify(updated)) + ";path=/;max-age=31536000";
+          }
+          return updated;
+        });
+        // If one-click worked, great. If link-only, show the overlay so user can confirm.
+        if (unsubData.method === "link" && unsubData.unsubscribeUrl) {
+          setUnsubUrl(unsubData.unsubscribeUrl);
+          setUnsubSender(current.from);
+          setShowUnsubOverlay(true);
+        }
+        // Step 2: Always trash the email
+        await fetch("/api/emails/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "delete", email: current }),
+        });
+      } catch (err) { console.error("Unsub+delete failed:", err); }
+      setActionInProgress(false);
+      return;
+    }
 
-    setActionInProgress(true);
-    try {
-      if (isUnsub) {
-        // Unsubscribe flow
+    // === UNSUBSCRIBE (standalone — kept for custom mappings) ===
+    if (action === "unsubscribe") {
+      setEmails((e) => e.slice(1));
+      setHistory((h) => [...h, { email: current, direction }]);
+      setStats((s) => ({ ...s, unsubscribed: s.unsubscribed + 1 }));
+      setLastAction({ direction, label: `Unsubscribed: ${current.from}` });
+      setActionInProgress(true);
+      try {
         const unsubRes = await fetch("/api/emails/unsubscribe", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -200,24 +268,35 @@ export default function SwipeBox() {
           setUnsubSender(current.from);
           setShowUnsubOverlay(true);
         }
-      } else if (isDown) {
-        // Delete
+        // Archive after unsubscribe
         await fetch("/api/emails/action", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "delete", email: current }),
+          body: JSON.stringify({ action: "unsubscribe", email: current }),
         });
-      } else {
-        // Right = Mark as Read
+      } catch (err) { console.error("Unsubscribe failed:", err); }
+      setActionInProgress(false);
+      return;
+    }
+
+    // === STAR (future) ===
+    if (action === "star") {
+      setEmails((e) => e.slice(1));
+      setHistory((h) => [...h, { email: current, direction }]);
+      setStats((s) => ({ ...s, read: s.read + 1 }));
+      setLastAction({ direction, label: `Starred: ${current.from}` });
+      setActionInProgress(true);
+      try {
         await fetch("/api/emails/action", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "mark_read", email: current }),
+          body: JSON.stringify({ action: "star", email: current }),
         });
-      }
-    } catch (err) { console.error("Action failed:", err); }
-    setActionInProgress(false);
-  }, [emails, actionInProgress]);
+      } catch (err) { console.error("Star failed:", err); }
+      setActionInProgress(false);
+      return;
+    }
+  }, [emails, actionInProgress, getActionForDirection]);
 
   const handleSnoozeSelect = useCallback(async (option) => {
     const email = pendingSnoozeEmail || emails[0];
@@ -406,7 +485,7 @@ export default function SwipeBox() {
                 {[
                   { arrow: "\u2190", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.left) || {}).label || "Snooze" },
                   { arrow: "\u2191", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.up) || {}).label || "Reply" },
-                  { arrow: "\u2193", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.down) || {}).label || "Delete" },
+                  { arrow: "\u2193", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.down) || {}).label || "Unsub / Delete" },
                   { arrow: "\u2192", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.right) || {}).label || "Read" },
                 ].map((item, idx) => (
                   <div key={idx} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", minWidth: "56px" }}>

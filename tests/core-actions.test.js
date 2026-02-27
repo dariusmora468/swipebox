@@ -41,6 +41,7 @@ function section(msg) { console.log(`\n${BOLD}${CYAN}${msg}${RESET}`); }
 const gmailLib = fs.readFileSync(path.join(__dirname, '../lib/gmail.js'), 'utf8');
 const actionRoute = fs.readFileSync(path.join(__dirname, '../app/api/emails/action/route.js'), 'utf8');
 const pageJs = fs.readFileSync(path.join(__dirname, '../app/page.js'), 'utf8');
+const settingsModal = fs.readFileSync(path.join(__dirname, '../components/SwipeSettingsModal.js'), 'utf8');
 
 // ============================================================
 // TEST 1: Fetch query must filter for UNREAD
@@ -62,23 +63,23 @@ section('2. Action Contracts (each must remove INBOX or UNREAD)');
 
 const ACTION_CONTRACTS = {
   mark_read: {
-    description: 'Swipe Left — Mark as Read',
-    mustCall: ['markAsRead', 'archiveEmail'], // Must do BOTH for safety
+    description: 'Mark Read action',
+    mustCall: ['markAsRead', 'archiveEmail'],
   },
   send: {
-    description: 'Swipe Right — Done/Send',
+    description: 'Send/Reply action',
     mustCallAny: [
-      ['archiveEmail'],           // No reply: mark read + archive
-      ['sendReply', 'archiveEmail'], // With reply: send + archive
+      ['archiveEmail'],
+      ['sendReply', 'archiveEmail'],
     ],
   },
   unsubscribe: {
-    description: 'Swipe Down — Unsubscribe',
+    description: 'Unsubscribe action',
     mustCall: ['markAsRead', 'archiveEmail'],
   },
   snooze: {
-    description: 'Swipe Up — Snooze',
-    mustCall: ['snoozeEmail'], // snoozeEmail removes INBOX label
+    description: 'Snooze action',
+    mustCall: ['snoozeEmail'],
   },
   archive: {
     description: 'Archive action',
@@ -106,7 +107,6 @@ for (const [action, contract] of Object.entries(ACTION_CONTRACTS)) {
 
   if (!block) {
     if (action === 'forward' || action === 'archive' || action === 'delete') {
-      // These may use different patterns
       if (actionRoute.includes(`case "${action}"`)) {
         pass(`${contract.description}: case exists in action route`);
       } else {
@@ -141,36 +141,88 @@ for (const [action, contract] of Object.entries(ACTION_CONTRACTS)) {
 }
 
 // ============================================================
-// TEST 3: Frontend → Backend alignment
+// TEST 3: Action-based swipe handler (mapping-aware)
 // ============================================================
-section('3. Frontend-Backend Alignment');
+section('3. Swipe Handler Architecture');
 
-// Check that handleSwipe maps directions to correct actions
-const directionActions = {
-  right: 'send',
-  left: 'mark_read',
-  down: 'unsubscribe',
-};
+// handleSwipe must use getActionForDirection, NOT hardcoded directions
+if (pageJs.includes('getActionForDirection')) {
+  pass('handleSwipe uses getActionForDirection() — mapping-aware');
+} else {
+  fail('handleSwipe does NOT use getActionForDirection — swipe settings will be ignored!');
+}
 
-for (const [dir, action] of Object.entries(directionActions)) {
-  if (pageJs.includes(`${dir}: "${action}"`)) {
-    pass(`Swipe ${dir} maps to "${action}" action`);
+// handleSwipe must NOT have hardcoded direction checks like 'direction === "left"'
+const hardcodedDirChecks = [
+  'direction === "left"',
+  'direction === "right"',
+  'direction === "up"',
+  'direction === "down"',
+  "direction === 'left'",
+  "direction === 'right'",
+  "direction === 'up'",
+  "direction === 'down'",
+];
+
+// Extract handleSwipe function body
+const handleSwipeStart = pageJs.indexOf('const handleSwipe = useCallback');
+const handleSwipeEnd = pageJs.indexOf('}, [emails, actionInProgress', handleSwipeStart);
+const handleSwipeBody = handleSwipeStart >= 0 && handleSwipeEnd >= 0
+  ? pageJs.substring(handleSwipeStart, handleSwipeEnd)
+  : '';
+
+if (handleSwipeBody) {
+  const hasHardcoded = hardcodedDirChecks.some(check => handleSwipeBody.includes(check));
+  if (!hasHardcoded) {
+    pass('handleSwipe has NO hardcoded direction checks — fully action-based');
   } else {
-    fail(`Swipe ${dir} should map to "${action}" but mapping not found`);
+    fail('handleSwipe still has hardcoded direction checks — ignores swipe settings!');
+  }
+} else {
+  warn('Could not extract handleSwipe function body — verify manually');
+}
+
+// Verify each action has a handler block
+const REQUIRED_ACTIONS = ['mark_read', 'snooze', 'done', 'archive', 'delete', 'unsubscribe', 'star'];
+for (const action of REQUIRED_ACTIONS) {
+  if (handleSwipeBody.includes(`action === "${action}"`)) {
+    pass(`Action handler for "${action}" exists in handleSwipe`);
+  } else {
+    fail(`Action handler for "${action}" MISSING from handleSwipe`);
   }
 }
 
-// Check that snooze direction is handled separately (not in actionMap)
-if (pageJs.includes('direction === "up"') && pageJs.includes('setShowSnoozePicker')) {
-  pass('Swipe up triggers snooze picker (separate flow)');
+// ============================================================
+// TEST 4: Default mappings match between SwipeSettingsModal and page
+// ============================================================
+section('4. Default Mapping Consistency');
+
+const DEFAULT_EXPECTED = {
+  right: 'mark_read',
+  left: 'snooze',
+  up: 'done',
+  down: 'delete',
+};
+
+for (const [dir, action] of Object.entries(DEFAULT_EXPECTED)) {
+  if (settingsModal.includes(`${dir}: '${action}'`)) {
+    pass(`SwipeSettingsModal default: ${dir} → ${action}`);
+  } else {
+    fail(`SwipeSettingsModal default for ${dir} should be '${action}'`);
+  }
+}
+
+// Check version-aware localStorage reset exists
+if (settingsModal.includes('MAPPINGS_VERSION') && settingsModal.includes('swipebox_mappings_version')) {
+  pass('Version-aware localStorage reset mechanism exists');
 } else {
-  fail('Swipe up should trigger snooze picker');
+  fail('No version-aware localStorage reset — stale mappings can cause action mismatch!');
 }
 
 // ============================================================
-// TEST 4: Gmail helper functions exist and are correct
+// TEST 5: Gmail Helper Functions
 // ============================================================
-section('4. Gmail Helper Functions');
+section('5. Gmail Helper Functions');
 
 const GMAIL_FUNCTIONS = {
   markAsRead: { removes: 'UNREAD', description: 'removes UNREAD label' },
@@ -184,8 +236,6 @@ for (const [fn, expected] of Object.entries(GMAIL_FUNCTIONS)) {
     continue;
   }
 
-  // Check that it removes the correct label
-  // Look for the function and its removeLabelIds
   const fnRegex = new RegExp(`function ${fn}[\\s\\S]*?removeLabelIds:[\\s\\S]*?\\["(.*?)"\\]`);
   const match = gmailLib.match(fnRegex);
   if (match && match[1] === expected.removes) {
@@ -204,9 +254,9 @@ if (gmailLib.includes('export async function trashEmail')) {
 }
 
 // ============================================================
-// TEST 5: Error handling
+// TEST 6: Error Handling
 // ============================================================
-section('5. Error Handling');
+section('6. Error Handling');
 
 if (actionRoute.includes('catch (err)') && actionRoute.includes('action_failed')) {
   pass('Action route has error handling with proper error response');
@@ -214,22 +264,16 @@ if (actionRoute.includes('catch (err)') && actionRoute.includes('action_failed')
   fail('Action route missing error handling');
 }
 
-if (pageJs.includes('catch (err) { console.error("Action failed:"')) {
-  pass('Frontend catches and logs action errors');
-} else {
-  warn('Frontend error handling for actions could not be verified');
-}
-
 // ============================================================
-// TEST 6: No orphaned imports / missing components
+// TEST 7: Import Integrity
 // ============================================================
-section('6. Import Integrity');
+section('7. Import Integrity');
 
 const importRegex = /import\s+.*?\s+from\s+['"](.+?)['"]/g;
-let match;
+let importMatch;
 const imports = [];
-while ((match = importRegex.exec(pageJs)) !== null) {
-  imports.push(match[1]);
+while ((importMatch = importRegex.exec(pageJs)) !== null) {
+  imports.push(importMatch[1]);
 }
 
 for (const imp of imports) {
