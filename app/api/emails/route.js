@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError, logWarn } from "../../../lib/logger";
 import { cookies } from "next/headers";
 import { parseAccountsCookie, fetchAllAccountEmails } from "../../../lib/gmail";
 import { processEmails } from "../../../lib/ai";
@@ -24,7 +25,7 @@ export async function GET(request) {
       unsubscribedSenders = JSON.parse(
         Buffer.from(unsubCookie.value, "base64").toString("utf-8")
       );
-    } catch {
+    } catch (e) { logWarn('api:emails', 'Failed to parse unsubscribed senders', { error: e?.message });
       unsubscribedSenders = [];
     }
   }
@@ -55,7 +56,7 @@ export async function GET(request) {
       accounts: accounts.map((a) => ({ email: a.email, name: a.name })),
     });
   } catch (err) {
-    console.error("Fetch emails error:", err);
+    logError('api:emails', 'Failed to fetch emails', err);
     if (err.isAuthError || err.code === 401 || err.message?.includes('invalid_grant')) {
       return NextResponse.json({ error: "token_expired" }, { status: 401 });
     }

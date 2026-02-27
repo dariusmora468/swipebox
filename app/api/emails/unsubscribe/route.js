@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError } from "../../../lib/logger";
 import { cookies } from "next/headers";
 import {
   parseAccountsCookie,
@@ -75,7 +76,7 @@ export async function POST(request) {
           });
         } catch (err) {
           // One-click failed, fall back to link
-          console.error("One-click unsubscribe failed:", err);
+          logError('api:unsubscribe', 'Unsubscribe error', err);
           method = "link";
         }
       }
@@ -115,7 +116,7 @@ export async function POST(request) {
       senderEmail,
     });
   } catch (err) {
-    console.error("Unsubscribe error:", err);
+    logError('api:unsubscribe', 'Unsubscribe error', err);
     return NextResponse.json(
       { error: "unsubscribe_failed", details: err.message },
       { status: 500 }

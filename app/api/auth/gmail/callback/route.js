@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError, logInfo } from "../../../../lib/logger";
 import {
   getTokensFromCode,
   getEmailForTokens,
@@ -41,7 +42,7 @@ export async function GET(request) {
 
     return response;
   } catch (err) {
-    console.error("OAuth callback error:", err);
+    logError('api:auth:callback', 'OAuth callback failed', err);
     return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_APP_URL}?error=auth_failed`
     );

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError } from "../../../../lib/logger";
 import { cookies } from "next/headers";
 import { parseAccountsCookie, serializeAccountsCookie } from "../../../../../lib/gmail";
 
@@ -39,7 +40,7 @@ export async function POST(request) {
 
     return response;
   } catch (error) {
-    console.error("Remove account error:", error);
+    logError('api:auth:remove', 'Failed to remove account', error);
     return NextResponse.json({ error: "Failed to remove account" }, { status: 500 });
   }
 }

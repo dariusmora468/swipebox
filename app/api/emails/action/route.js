@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError } from "../../../lib/logger";
 import { cookies } from "next/headers";
 import {
   parseAccountsCookie,
@@ -99,7 +100,7 @@ export async function POST(request) {
 
     return NextResponse.json({ success: true, action });
   } catch (err) {
-    console.error("Action error:", err);
+    logError('api:emails:action', 'Email action failed', err);
     return NextResponse.json(
       { error: "action_failed", details: err.message },
       { status: 500 }
