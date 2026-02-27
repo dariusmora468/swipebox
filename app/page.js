@@ -16,9 +16,11 @@ export default function SwipeBox() {
   const [emails, setEmails] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [history, setHistory] = useState(() => {
+    if (typeof window === "undefined") return [];
     try { return JSON.parse(localStorage.getItem('swipebox_history')) || []; } catch { return []; }
   });
   const [stats, setStats] = useState(() => {
+    if (typeof window === "undefined") return { sent: 0, read: 0, snoozed: 0, unsubscribed: 0 };
     try { return JSON.parse(localStorage.getItem('swipebox_stats')) || { sent: 0, read: 0, snoozed: 0, unsubscribed: 0 }; } catch { return { sent: 0, read: 0, snoozed: 0, unsubscribed: 0 }; }
   });
   const [lastAction, setLastAction] = useState(null);
@@ -92,6 +94,7 @@ export default function SwipeBox() {
       setAccounts(data.accounts || []);
       setHistory([]);
       setStats({ sent: 0, read: 0, snoozed: 0, unsubscribed: 0 });
+      setLoading(false);
     } catch (err) { console.error("Error:", err); setIsAuthenticated(false); }
       setFetchError('Unable to connect to Gmail. Please try again.');
     setLoading(false);
@@ -240,7 +243,7 @@ export default function SwipeBox() {
 
   if (fetchError) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '2rem', textAlign: 'center', background: '#0a0a0a', color: '#fff' }}>
-      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>Ã¢ÂÂ Ã¯Â¸Â</div>
+      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>ÃÂ¢ÃÂÃÂ ÃÂ¯ÃÂ¸ÃÂ</div>
       <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Connection Error</h2>
       <p style={{ color: '#999', marginBottom: '1.5rem', maxWidth: '300px' }}>{fetchError}</p>
       <button onClick={() => { setFetchError(null); fetchEmails(); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: '#fff', color: '#000', border: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}>
