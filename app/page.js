@@ -94,10 +94,11 @@ export default function SwipeBox() {
       setHistory([]);
       setStats({ sent: 0, read: 0, snoozed: 0, unsubscribed: 0 });
       setLoading(false);
-    } catch (err) { console.error("Error:", err); setIsAuthenticated(false); }
+    } catch (err) { console.error("Error:", err);
       setFetchError('Unable to connect to Gmail. Please try again.');
-    setLoading(false);
-  }
+      setLoading(false);
+    }
+    }
 
   const handleSwipe = useCallback(async (direction, replyText) => {
     if (emails.length === 0 || actionInProgress) return;
@@ -242,7 +243,7 @@ export default function SwipeBox() {
 
   if (fetchError) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '2rem', textAlign: 'center', background: '#0a0a0a', color: '#fff' }}>
-      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>ÃÂ¢ÃÂÃÂ ÃÂ¯ÃÂ¸ÃÂ</div>
+      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
       <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Connection Error</h2>
       <p style={{ color: '#999', marginBottom: '1.5rem', maxWidth: '300px' }}>{fetchError}</p>
       <button onClick={() => { setFetchError(null); fetchEmails(); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: '#fff', color: '#000', border: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}>
