@@ -15,8 +15,12 @@ export default function SwipeBox() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
   const [emails, setEmails] = useState([]);
   const [accounts, setAccounts] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [stats, setStats] = useState({ sent: 0, read: 0, snoozed: 0, unsubscribed: 0 });
+  const [history, setHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('swipebox_history')) || []; } catch { return []; }
+  });
+  const [stats, setStats] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('swipebox_stats')) || { sent: 0, read: 0, snoozed: 0, unsubscribed: 0 }; } catch { return { sent: 0, read: 0, snoozed: 0, unsubscribed: 0 }; }
+  });
   const [lastAction, setLastAction] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -38,6 +42,14 @@ export default function SwipeBox() {
   });
 
   useEffect(() => { fetchEmails(); }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem('swipebox_stats', JSON.stringify(stats)); } catch {}
+  }, [stats]);
+
+  useEffect(() => {
+    try { localStorage.setItem('swipebox_history', JSON.stringify(history)); } catch {}
+  }, [history]);
   useEffect(() => { if (lastAction) { setShowToast(true); const t = setTimeout(() => setShowToast(false), 2500); return () => clearTimeout(t); } }, [lastAction]);
 
   // Check for expired snoozes on load
@@ -227,7 +239,7 @@ export default function SwipeBox() {
 
   if (fetchError) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '2rem', textAlign: 'center', background: '#0a0a0a', color: '#fff' }}>
-      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
+      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>â ï¸</div>
       <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Connection Error</h2>
       <p style={{ color: '#999', marginBottom: '1.5rem', maxWidth: '300px' }}>{fetchError}</p>
       <button onClick={() => { setFetchError(null); fetchEmails(); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: '#fff', color: '#000', border: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}>
