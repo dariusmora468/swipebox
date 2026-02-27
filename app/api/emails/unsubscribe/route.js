@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { logError } from "../../../lib/logger";
+import { logError } from "../../../../lib/logger";
 import { cookies } from "next/headers";
 import {
   parseAccountsCookie,

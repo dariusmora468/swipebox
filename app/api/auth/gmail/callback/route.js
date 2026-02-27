@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { logError, logInfo } from "../../../../lib/logger";
+import { logError, logInfo } from "../../../../../lib/logger";
 import {
   getTokensFromCode,
   getEmailForTokens,
