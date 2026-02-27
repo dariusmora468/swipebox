@@ -35,36 +35,56 @@ NEXT_PUBLIC_APP_URL     # Production: https://swipebox-six.vercel.app
 
 ```
 swipebox/
-+-- .env.example          # Environment variable template
-+-- package.json           # Dependencies (next, react, anthropic, googleapis, framer-motion)
-+-- next.config.js         # Minimal Next.js config
-+-- CHANGELOG.md           # Running log of all changes
-+-- SETUP.md               # Original setup guide
-+-- docs/
-|   +-- ARCHITECTURE.md    # This file
-+-- public/
-|   +-- manifest.json      # PWA manifest
-+-- app/
-|   +-- globals.css        # Global styles (dark theme)
-|   +-- layout.js          # Root layout with metadata
-|   +-- page.js            # ** ENTIRE UI ** (57KB, 1108 lines, 18 components)
-|   +-- api/
-|       +-- auth/gmail/
-|       |   +-- route.js           # GET: Redirect to Google OAuth
-|       |   +-- callback/route.js  # GET: Handle OAuth callback, store tokens
-|       |   +-- remove/route.js    # POST: Disconnect a Gmail account
-|       +-- emails/
-|           +-- route.js           # GET: Fetch + parse + AI-summarize emails
-|           +-- action/route.js    # POST: Archive, trash, reply, snooze, forward
-|           +-- unsubscribe/route.js # POST: Unsubscribe from mailing lists
-+-- lib/
-    +-- gmail.js           # Gmail API client (21 functions)
-    +-- ai.js              # Claude AI integration (2 exports)
+  .env.example          # Required environment variables
+  .gitignore
+  package.json          # Dependencies: next, react, googleapis, anthropic, framer-motion
+  next.config.js        # Next.js configuration
+  CHANGELOG.md          # Running changelog
+  SETUP.md              # Setup guide
+
+  app/
+    globals.css         # Global styles
+    layout.js           # Root layout with metadata
+    page.js             # SwipeBox main component (338 lines, default export)
+    api/
+      auth/gmail/
+        route.js        # OAuth redirect to Google
+        callback/route.js  # OAuth callback handler
+        remove/route.js    # Disconnect Gmail
+      emails/
+        route.js        # GET /api/emails - fetch & summarize
+        action/route.js # POST email actions (archive, trash, etc.)
+        unsubscribe/route.js # POST unsubscribe from sender
+
+  lib/
+    gmail.js            # Gmail API wrapper (21 functions)
+    ai.js               # Anthropic Claude integration (2 exports)
+    constants.js        # ACTION_ICONS and SNOOZE_OPTIONS config
+    snooze.js           # Snooze utility functions (4 exports)
+
+  components/
+    EmailModal.js       # Email detail modal (218 lines)
+    EmailCard.js        # Swipeable email card (176 lines)
+    SettingsModal.js    # Settings modal (81 lines)
+    UnsubscribeOverlay.js # Unsubscribe confirmation (49 lines)
+    SnoozePicker.js     # Snooze time picker (44 lines)
+    ActionBadge.js      # Action count badge (28 lines)
+    CompletionScreen.js # Inbox zero screen (25 lines)
+    ActionButton.js     # Animated action button (19 lines)
+    LoginScreen.js      # Gmail login screen (13 lines)
+    GoogleIcon.js       # Google SVG icon (10 lines)
+    LoadingScreen.js    # Loading spinner (8 lines)
+
+  docs/
+    ARCHITECTURE.md     # This file
+
+  public/
+    manifest.json       # PWA manifest
 ```
 
 ## Key Files In Detail
 
-### app/page.js (57KB - UI Monolith)
+### app/page.js (17KB - UI Monolith)
 
 Contains ALL frontend components in a single file. This is the #1 refactoring target.
 
@@ -187,7 +207,7 @@ Due to the tools available, changes are made through:
 - Chrome extension content filter blocks code containing cookie/token patterns
 - GitHub API calls require PAT stored in browser memory (lost on page navigation)
 - No ability to clone repo in VM (network proxy blocks GitHub)
-- Large file edits (page.js at 57KB) are risky via string manipulation
+- Large file edits (page.js at 17KB) are risky via string manipulation
 
 **Recommended approach:**
 - Keep PAT in a window variable, restore after any page navigation

@@ -4,6 +4,26 @@ All notable changes to SwipeBox are documented here. Most recent changes at top.
 
 ---
 
+## [b681dea] - 2026-02-27
+### Refactor: Split page.js monolith into modular components
+- **Files added:**
+  - `lib/constants.js` - ACTION_ICONS and SNOOZE_OPTIONS configuration
+  - `lib/snooze.js` - Snooze utility functions (getSnoozeTime, getSnoozedEmails, addSnoozedEmail, clearExpiredSnoozes)
+  - `components/SnoozePicker.js` - Snooze time picker component (44 lines)
+  - `components/ActionBadge.js` - Action count badge component (28 lines)
+  - `components/EmailModal.js` - Email detail modal component (218 lines)
+  - `components/UnsubscribeOverlay.js` - Unsubscribe confirmation overlay (49 lines)
+  - `components/SettingsModal.js` - Settings modal component (81 lines)
+  - `components/GoogleIcon.js` - Google SVG icon component (10 lines)
+  - `components/EmailCard.js` - Swipeable email card component (176 lines)
+  - `components/ActionButton.js` - Action button with animation (19 lines)
+  - `components/CompletionScreen.js` - Inbox zero completion screen (25 lines)
+  - `components/LoadingScreen.js` - Loading spinner screen (8 lines)
+  - `components/LoginScreen.js` - Gmail login screen (13 lines)
+- **Files modified:**
+  - `app/page.js` - Reduced from 1108 lines (57KB) to 338 lines (17KB), now contains only SwipeBox main component with imports
+- **Impact:** No functional changes. Pure refactor for maintainability.
+
 ## 2026-02-26
 
 ### 4a9c8aa - fix: Improve email body sanitization for clean modal formatting
