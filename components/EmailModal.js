@@ -158,9 +158,9 @@ function EmailModal({ email, onClose, onReply, onForward }) {
         {/* Subject & Full Body */}
         <div style={{ padding: "18px 24px" }}>
           <h2 style={{
-            fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: "20px", fontWeight: 600, color: "#2C2520",
-            margin: "0 0 16px", lineHeight: 1.4,
+            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontSize: "19px", fontWeight: 700, color: "#2C2520",
+            margin: "0 0 16px", lineHeight: 1.45, letterSpacing: "0.1px",
           }}>
             {email.subject}
           </h2>

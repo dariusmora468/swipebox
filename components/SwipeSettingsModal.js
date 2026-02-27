@@ -2,20 +2,20 @@
 import { useState } from 'react';
 
 const AVAILABLE_ACTIONS = [
-  { id: 'mark_read', label: 'Mark Read', icon: '📖', color: '#D97706' },
-  { id: 'snooze', label: 'Snooze', icon: '⏰', color: '#4F46E5' },
-  { id: 'unsubscribe', label: 'Unsubscribe', icon: '🚫', color: '#7C3AED' },
-  { id: 'done', label: 'Done / Send', icon: '✅', color: '#10B981' },
-  { id: 'archive', label: 'Archive', icon: '📦', color: '#6B7280' },
-  { id: 'delete', label: 'Delete', icon: '🗑️', color: '#EF4444' },
-  { id: 'star', label: 'Star', icon: '⭐', color: '#F59E0B' },
+  { id: 'mark_read', label: 'Mark Read', icon: '\u{1F4D6}', color: '#A0775A' },
+  { id: 'snooze', label: 'Snooze', icon: '\u23F0', color: '#B8963E' },
+  { id: 'unsubscribe', label: 'Unsubscribe', icon: '\u{1F6AB}', color: '#B07070' },
+  { id: 'done', label: 'Done / Send', icon: '\u2713', color: '#7A8C6E' },
+  { id: 'archive', label: 'Archive', icon: '\u{1F4E6}', color: '#6B5E54' },
+  { id: 'delete', label: 'Delete', icon: '\u{1F5D1}\uFE0F', color: '#B07070' },
+  { id: 'star', label: 'Star', icon: '\u2B50', color: '#B8963E' },
 ];
 
 const DIRECTION_META = {
-  left: { label: 'Swipe Left', arrow: '←' },
-  right: { label: 'Swipe Right', arrow: '→' },
-  up: { label: 'Swipe Up', arrow: '↑' },
-  down: { label: 'Swipe Down', arrow: '↓' },
+  left: { label: 'Swipe Left', arrow: '\u2190' },
+  right: { label: 'Swipe Right', arrow: '\u2192' },
+  up: { label: 'Swipe Up', arrow: '\u2191' },
+  down: { label: 'Swipe Down', arrow: '\u2193' },
 };
 
 const DEFAULT_MAPPINGS = {
@@ -69,29 +69,29 @@ function SwipeSettingsModal({ mappings, onSave, onClose }) {
       {/* Backdrop */}
       <div onClick={onClose} style={{
         position: 'absolute', inset: 0,
-        background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)',
+        background: 'rgba(44,37,32,0.3)', backdropFilter: 'blur(8px)',
       }} />
 
       {/* Sheet */}
       <div style={{
         position: 'relative', width: '100%', maxWidth: '500px',
-        background: '#FFFFFF', borderRadius: '24px 24px 0 0',
-        boxShadow: '0 -8px 40px rgba(0,0,0,0.12)',
+        background: '#FDFBF9', borderRadius: '20px 20px 0 0',
+        boxShadow: '0 -8px 40px rgba(44,37,32,0.12)',
         padding: '0 0 env(safe-area-inset-bottom, 20px)',
         animation: 'slideUp 0.3s ease',
         maxHeight: '85vh', overflowY: 'auto',
       }}>
         {/* Drag handle */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 8px' }}>
-          <div style={{ width: '36px', height: '4px', borderRadius: '2px', background: 'rgba(0,0,0,0.12)' }} />
+          <div style={{ width: '36px', height: '4px', borderRadius: '2px', background: 'rgba(120,100,80,0.12)' }} />
         </div>
 
         {/* Header */}
-        <div style={{ padding: '8px 24px 20px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#1A1A2E', margin: 0, letterSpacing: '-0.3px' }}>
+        <div style={{ padding: '8px 24px 20px', borderBottom: '1px solid rgba(120,100,80,0.06)' }}>
+          <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '19px', fontWeight: 700, color: '#2C2520', margin: 0 }}>
             Customize Swipe Actions
           </h2>
-          <p style={{ fontSize: '13px', color: '#9CA3AF', margin: '6px 0 0', lineHeight: 1.5 }}>
+          <p style={{ fontSize: '13px', color: '#9C8E82', margin: '6px 0 0', lineHeight: 1.5 }}>
             Choose what happens when you swipe in each direction
           </p>
         </div>
@@ -110,9 +110,9 @@ function SwipeSettingsModal({ mappings, onSave, onClose }) {
                   onClick={() => setExpandedDir(isExpanded ? null : dir)}
                   style={{
                     width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '14px 16px', borderRadius: '16px',
-                    background: isExpanded ? 'rgba(79,70,229,0.04)' : '#F5F5F7',
-                    border: isExpanded ? '1.5px solid rgba(79,70,229,0.15)' : '1px solid rgba(0,0,0,0.04)',
+                    padding: '14px 16px', borderRadius: '14px',
+                    background: isExpanded ? 'rgba(160,119,90,0.04)' : 'rgba(120,100,80,0.03)',
+                    border: isExpanded ? '1.5px solid rgba(160,119,90,0.15)' : '1px solid rgba(120,100,80,0.06)',
                     cursor: 'pointer', transition: 'all 0.2s ease',
                   }}
                 >
@@ -120,32 +120,32 @@ function SwipeSettingsModal({ mappings, onSave, onClose }) {
                     <div style={{
                       width: '36px', height: '36px', borderRadius: '10px',
                       background: `${currentAction.color}10`,
-                      border: `1px solid ${currentAction.color}20`,
+                      border: `1px solid ${currentAction.color}18`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '16px', fontWeight: 700, color: currentAction.color,
                     }}>
                       {meta.arrow}
                     </div>
                     <div style={{ textAlign: 'left' }}>
-                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#1A1A2E' }}>{meta.label}</div>
-                      <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#2C2520' }}>{meta.label}</div>
+                      <div style={{ fontSize: '12px', color: '#9C8E82', marginTop: '2px' }}>
                         {currentAction.icon} {currentAction.label}
                       </div>
                     </div>
                   </div>
                   <div style={{
-                    fontSize: '14px', color: '#9CA3AF',
+                    fontSize: '14px', color: '#B8A99A',
                     transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
                     transition: 'transform 0.2s ease',
-                  }}>▾</div>
+                  }}>{"\u25BE"}</div>
                 </button>
 
                 {/* Action options dropdown */}
                 {isExpanded && (
                   <div style={{
                     marginTop: '6px', padding: '8px',
-                    background: '#FAFAFA', borderRadius: '14px',
-                    border: '1px solid rgba(0,0,0,0.04)',
+                    background: 'rgba(120,100,80,0.02)', borderRadius: '14px',
+                    border: '1px solid rgba(120,100,80,0.06)',
                   }}>
                     {AVAILABLE_ACTIONS.map((action) => {
                       const isSelected = draft[dir] === action.id;
@@ -157,7 +157,7 @@ function SwipeSettingsModal({ mappings, onSave, onClose }) {
                             width: '100%', display: 'flex', alignItems: 'center', gap: '12px',
                             padding: '10px 12px', borderRadius: '10px',
                             background: isSelected ? `${action.color}08` : 'transparent',
-                            border: isSelected ? `1px solid ${action.color}20` : '1px solid transparent',
+                            border: isSelected ? `1px solid ${action.color}18` : '1px solid transparent',
                             cursor: 'pointer', transition: 'all 0.15s ease',
                             marginBottom: '2px',
                           }}
@@ -165,10 +165,10 @@ function SwipeSettingsModal({ mappings, onSave, onClose }) {
                           <span style={{ fontSize: '18px', width: '24px', textAlign: 'center' }}>{action.icon}</span>
                           <span style={{
                             fontSize: '14px', fontWeight: isSelected ? 700 : 500,
-                            color: isSelected ? action.color : '#374151',
+                            color: isSelected ? action.color : '#4A433C',
                           }}>{action.label}</span>
                           {isSelected && (
-                            <span style={{ marginLeft: 'auto', fontSize: '14px', color: action.color }}>✓</span>
+                            <span style={{ marginLeft: 'auto', fontSize: '14px', color: action.color }}>{"\u2713"}</span>
                           )}
                         </button>
                       );
@@ -183,20 +183,20 @@ function SwipeSettingsModal({ mappings, onSave, onClose }) {
         {/* Footer buttons */}
         <div style={{
           padding: '12px 24px 24px', display: 'flex', gap: '10px',
-          borderTop: '1px solid rgba(0,0,0,0.06)',
+          borderTop: '1px solid rgba(120,100,80,0.06)',
         }}>
           <button onClick={handleReset} style={{
             flex: 1, padding: '14px', borderRadius: '14px',
-            background: '#F5F5F7', border: '1px solid rgba(0,0,0,0.06)',
-            color: '#6B7280', fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+            background: 'rgba(120,100,80,0.03)', border: '1px solid rgba(120,100,80,0.08)',
+            color: '#6B5E54', fontSize: '14px', fontWeight: 600, cursor: 'pointer',
           }}>
             Reset Defaults
           </button>
           <button onClick={handleSave} style={{
             flex: 2, padding: '14px', borderRadius: '14px',
-            background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
-            border: 'none', color: '#fff', fontSize: '14px', fontWeight: 700,
-            cursor: 'pointer', boxShadow: '0 4px 12px rgba(79,70,229,0.3)',
+            background: '#A0775A',
+            border: 'none', color: '#FDFBF9', fontSize: '14px', fontWeight: 600,
+            cursor: 'pointer', boxShadow: '0 4px 12px rgba(160,119,90,0.2)',
           }}>
             Save Changes
           </button>

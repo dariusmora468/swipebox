@@ -2,7 +2,6 @@
 import { useState, useRef, useEffect } from 'react';
 
 function ComposeCard({ email, mode, onSend, onClose }) {
-  // mode: "reply" or "forward"
   const isReply = mode === "reply";
   const isForward = mode === "forward";
 
@@ -51,37 +50,35 @@ function ComposeCard({ email, mode, onSend, onClose }) {
     }
   };
 
-  const forwardedBody = `\n\n---------- Forwarded message ----------\nFrom: ${email.from} <${email.email}>\nDate: ${email.time}\nSubject: ${email.subject}\n\n${email.body || email.preview || ""}`;
-
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 300,
-      background: "rgba(0,0,0,0.35)", backdropFilter: "blur(12px)",
+      background: "rgba(44,37,32,0.35)", backdropFilter: "blur(12px)",
       display: "flex", flexDirection: "column",
       animation: "fadeIn 0.2s ease",
     }}>
-      {/* Full-screen compose overlay */}
       <div style={{
         flex: 1, display: "flex", flexDirection: "column",
-        background: "#FFFFFF",
+        background: "#FDFBF9",
         animation: "fadeInScale 0.25s ease",
         overflow: "hidden",
       }}>
         {/* Top bar */}
         <div style={{
           padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between",
-          borderBottom: "1px solid rgba(0,0,0,0.06)",
-          background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)",
+          borderBottom: "1px solid rgba(120,100,80,0.08)",
+          background: "rgba(253,251,249,0.95)", backdropFilter: "blur(20px)",
         }}>
           <button onClick={onClose} style={{
             display: "flex", alignItems: "center", gap: "6px",
             background: "none", border: "none", cursor: "pointer",
-            color: "#6B7280", fontSize: "14px", fontWeight: 600, padding: "6px 0",
+            color: "#9C8E82", fontSize: "14px", fontWeight: 500, padding: "6px 0",
           }}>
             <span style={{ fontSize: "18px" }}>{"\u2190"}</span> Cancel
           </button>
           <div style={{
-            fontSize: "15px", fontWeight: 700, color: "#1A1A2E",
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: "15px", fontWeight: 600, color: "#2C2520",
             display: "flex", alignItems: "center", gap: "8px",
           }}>
             <span style={{ fontSize: "16px" }}>{isReply ? "\u21A9" : "\u21AA"}</span>
@@ -95,15 +92,15 @@ function ComposeCard({ email, mode, onSend, onClose }) {
 
           {/* To field */}
           <div style={{
-            padding: "14px 20px", borderBottom: "1px solid rgba(0,0,0,0.04)",
+            padding: "14px 20px", borderBottom: "1px solid rgba(120,100,80,0.05)",
             display: "flex", alignItems: "center", gap: "10px",
           }}>
-            <span style={{ fontSize: "13px", fontWeight: 600, color: "#9CA3AF", minWidth: "28px" }}>To:</span>
+            <span style={{ fontSize: "13px", fontWeight: 600, color: "#9C8E82", minWidth: "28px" }}>To:</span>
             {isReply ? (
               <div style={{
                 padding: "6px 14px", borderRadius: "20px",
-                background: "#F5F5F7", border: "1px solid rgba(0,0,0,0.04)",
-                fontSize: "13px", color: "#1A1A2E", fontWeight: 500,
+                background: "rgba(120,100,80,0.04)", border: "1px solid rgba(120,100,80,0.08)",
+                fontSize: "13px", color: "#2C2520", fontWeight: 500,
               }}>
                 {email.from} &lt;{email.email}&gt;
               </div>
@@ -116,8 +113,8 @@ function ComposeCard({ email, mode, onSend, onClose }) {
                 placeholder="Email address"
                 style={{
                   flex: 1, padding: "8px 14px", borderRadius: "12px",
-                  border: "1px solid rgba(0,0,0,0.08)", background: "#FAFAFA",
-                  fontSize: "14px", color: "#1A1A2E", outline: "none",
+                  border: "1px solid rgba(120,100,80,0.1)", background: "rgba(120,100,80,0.02)",
+                  fontSize: "14px", color: "#2C2520", outline: "none",
                   fontFamily: "inherit",
                 }}
               />
@@ -126,11 +123,11 @@ function ComposeCard({ email, mode, onSend, onClose }) {
 
           {/* Subject field */}
           <div style={{
-            padding: "14px 20px", borderBottom: "1px solid rgba(0,0,0,0.04)",
+            padding: "14px 20px", borderBottom: "1px solid rgba(120,100,80,0.05)",
             display: "flex", alignItems: "center", gap: "10px",
           }}>
-            <span style={{ fontSize: "13px", fontWeight: 600, color: "#9CA3AF", minWidth: "28px" }}>Subj:</span>
-            <div style={{ fontSize: "14px", color: "#1A1A2E", fontWeight: 600 }}>{subject}</div>
+            <span style={{ fontSize: "13px", fontWeight: 600, color: "#9C8E82", minWidth: "28px" }}>Subj:</span>
+            <div style={{ fontSize: "14px", color: "#2C2520", fontWeight: 600 }}>{subject}</div>
           </div>
 
           {/* Compose body */}
@@ -144,19 +141,19 @@ function ComposeCard({ email, mode, onSend, onClose }) {
                 }}>
                   <div style={{
                     display: "flex", alignItems: "center", gap: "6px",
-                    fontSize: "11px", fontWeight: 700, color: "#059669",
-                    letterSpacing: "0.5px", textTransform: "uppercase",
+                    fontSize: "10px", fontWeight: 600, color: "#7A8C6E",
+                    letterSpacing: "0.8px", textTransform: "uppercase",
                   }}>
-                    <span>{"\u2728"}</span> AI Draft Reply
+                    AI Draft Reply
                   </div>
                   <button
                     onClick={() => setIsEditing(!isEditing)}
                     style={{
                       display: "flex", alignItems: "center", gap: "5px",
                       padding: "6px 14px", borderRadius: "20px",
-                      background: isEditing ? "rgba(79,70,229,0.08)" : "#F5F5F7",
-                      border: isEditing ? "1px solid rgba(79,70,229,0.15)" : "1px solid rgba(0,0,0,0.06)",
-                      color: isEditing ? "#4F46E5" : "#6B7280",
+                      background: isEditing ? "rgba(160,119,90,0.06)" : "rgba(120,100,80,0.04)",
+                      border: isEditing ? "1px solid rgba(160,119,90,0.15)" : "1px solid rgba(120,100,80,0.08)",
+                      color: isEditing ? "#A0775A" : "#6B5E54",
                       fontSize: "12px", fontWeight: 600, cursor: "pointer",
                     }}
                   >
@@ -173,19 +170,19 @@ function ComposeCard({ email, mode, onSend, onClose }) {
                     onChange={(e) => setReplyText(e.target.value)}
                     style={{
                       width: "100%", minHeight: "180px", padding: "16px",
-                      borderRadius: "16px", border: "1.5px solid rgba(79,70,229,0.2)",
-                      background: "#FAFAFA", fontSize: "14px", lineHeight: 1.7,
-                      color: "#1A1A2E", fontFamily: "inherit", resize: "vertical",
+                      borderRadius: "14px", border: "1.5px solid rgba(160,119,90,0.2)",
+                      background: "rgba(120,100,80,0.02)", fontSize: "14px", lineHeight: 1.7,
+                      color: "#2C2520", fontFamily: "inherit", resize: "vertical",
                       outline: "none", boxSizing: "border-box",
                     }}
                   />
                 ) : (
                   <div style={{
-                    padding: "18px", borderRadius: "16px",
-                    background: "rgba(16,185,129,0.04)", border: "1px solid rgba(16,185,129,0.1)",
+                    padding: "18px", borderRadius: "14px",
+                    background: "rgba(122,140,110,0.04)", border: "1px solid rgba(122,140,110,0.08)",
                   }}>
                     <p style={{
-                      fontSize: "14px", color: "#374151", lineHeight: 1.7,
+                      fontSize: "14px", color: "#4A433C", lineHeight: 1.7,
                       margin: 0, whiteSpace: "pre-wrap",
                     }}>{replyText}</p>
                   </div>
@@ -202,9 +199,9 @@ function ComposeCard({ email, mode, onSend, onClose }) {
                   placeholder="Add a note (optional)..."
                   style={{
                     width: "100%", minHeight: "80px", padding: "16px",
-                    borderRadius: "16px", border: "1px solid rgba(0,0,0,0.08)",
-                    background: "#FAFAFA", fontSize: "14px", lineHeight: 1.7,
-                    color: "#1A1A2E", fontFamily: "inherit", resize: "vertical",
+                    borderRadius: "14px", border: "1px solid rgba(120,100,80,0.1)",
+                    background: "rgba(120,100,80,0.02)", fontSize: "14px", lineHeight: 1.7,
+                    color: "#2C2520", fontFamily: "inherit", resize: "vertical",
                     outline: "none", boxSizing: "border-box",
                     marginBottom: "16px",
                   }}
@@ -212,23 +209,23 @@ function ComposeCard({ email, mode, onSend, onClose }) {
 
                 {/* Forwarded message content */}
                 <div style={{
-                  padding: "16px", borderRadius: "16px",
-                  background: "#F5F5F7", border: "1px solid rgba(0,0,0,0.04)",
+                  padding: "16px", borderRadius: "14px",
+                  background: "rgba(120,100,80,0.03)", border: "1px solid rgba(120,100,80,0.06)",
                 }}>
                   <div style={{
-                    fontSize: "11px", fontWeight: 700, color: "#9CA3AF",
-                    letterSpacing: "0.5px", textTransform: "uppercase", marginBottom: "12px",
+                    fontSize: "10px", fontWeight: 600, color: "#9C8E82",
+                    letterSpacing: "0.8px", textTransform: "uppercase", marginBottom: "12px",
                   }}>
                     Forwarded Message
                   </div>
-                  <div style={{ fontSize: "12px", color: "#6B7280", lineHeight: 1.6, marginBottom: "12px" }}>
+                  <div style={{ fontSize: "12px", color: "#6B5E54", lineHeight: 1.6, marginBottom: "12px" }}>
                     <div><strong>From:</strong> {email.from} &lt;{email.email}&gt;</div>
                     <div><strong>Date:</strong> {email.time}</div>
                     <div><strong>Subject:</strong> {email.subject}</div>
                   </div>
                   <div style={{
-                    borderTop: "1px solid rgba(0,0,0,0.06)", paddingTop: "12px",
-                    fontSize: "13px", color: "#374151", lineHeight: 1.7,
+                    borderTop: "1px solid rgba(120,100,80,0.06)", paddingTop: "12px",
+                    fontSize: "13px", color: "#4A433C", lineHeight: 1.7,
                     whiteSpace: "pre-wrap", wordBreak: "break-word",
                   }}>
                     {(email.body || email.preview || "").split("\n").filter(line => line.trim()).map((p, i) => (
@@ -244,22 +241,22 @@ function ComposeCard({ email, mode, onSend, onClose }) {
         {/* Floating Send button */}
         <div style={{
           padding: "16px 20px", paddingBottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
-          borderTop: "1px solid rgba(0,0,0,0.06)",
-          background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)",
+          borderTop: "1px solid rgba(120,100,80,0.08)",
+          background: "rgba(253,251,249,0.95)", backdropFilter: "blur(20px)",
         }}>
           <button
             onClick={handleSend}
             disabled={sending || (isForward && !forwardTo.trim())}
             style={{
-              width: "100%", padding: "16px", borderRadius: "16px",
+              width: "100%", padding: "16px", borderRadius: "14px",
               border: "none", cursor: sending ? "wait" : "pointer",
               background: (sending || (isForward && !forwardTo.trim()))
-                ? "#D1D5DB"
-                : "linear-gradient(135deg, #10B981, #059669)",
-              color: "#fff", fontSize: "16px", fontWeight: 700,
+                ? "#D4C8BC"
+                : "#7A8C6E",
+              color: "#FDFBF9", fontSize: "15px", fontWeight: 600,
               boxShadow: (sending || (isForward && !forwardTo.trim()))
                 ? "none"
-                : "0 4px 16px rgba(16,185,129,0.3)",
+                : "0 4px 16px rgba(122,140,110,0.25)",
               display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
               transition: "all 0.2s ease",
             }}
@@ -267,7 +264,7 @@ function ComposeCard({ email, mode, onSend, onClose }) {
             {sending ? (
               <>{"\u23F3"} Sending...</>
             ) : (
-              <>{"\u2709\uFE0F"} Send {isReply ? "Reply" : "Forward"}</>
+              <>Send {isReply ? "Reply" : "Forward"}</>
             )}
           </button>
         </div>

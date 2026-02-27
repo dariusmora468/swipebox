@@ -320,15 +320,14 @@ export default function SwipeBox() {
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
             <span style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: "14px", fontWeight: 600, fontStyle: "italic",
+              fontSize: "13px", fontWeight: 500,
               color: progressPercent === 100 ? "#7A8C6E" : "#6B5E54",
+              letterSpacing: "0.2px",
             }}>
               {emails.length > 0 ? "Swiping to Inbox Zero" : "Inbox Zero Achieved"}
             </span>
             <span style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: "18px", fontWeight: 700,
+              fontSize: "15px", fontWeight: 700,
               color: progressPercent === 100 ? "#7A8C6E" : "#2C2520",
             }}>
               {Math.round(progressPercent)}%
@@ -350,7 +349,7 @@ export default function SwipeBox() {
               {totalProcessed} of {totalEmails} emails processed
             </span>
             {emails.length > 0 && emails.length <= 5 && (
-              <span style={{ fontSize: "11px", color: "#A0775A", fontWeight: 600, fontStyle: "italic" }}>
+              <span style={{ fontSize: "11px", color: "#A0775A", fontWeight: 600 }}>
                 Almost there
               </span>
             )}

@@ -14,11 +14,11 @@ function CelebrationOverlay({ celebration, onDismiss }) {
 
   if (!celebration) return null;
 
-  // Confetti particles
+  // Confetti particles in warm tones
   const confetti = Array.from({ length: 20 }, (_, i) => ({
     left: `${Math.random() * 100}%`,
     delay: `${Math.random() * 0.6}s`,
-    color: ["#4F46E5", "#7C3AED", "#10B981", "#F59E0B", "#EC4899", "#3B82F6"][i % 6],
+    color: ["#A0775A", "#C4845C", "#7A8C6E", "#B8963E", "#B07070", "#D4A574"][i % 6],
     size: 5 + Math.random() * 5,
   }));
 
@@ -28,7 +28,7 @@ function CelebrationOverlay({ celebration, onDismiss }) {
       style={{
         position: "fixed", inset: 0, zIndex: 500,
         display: "flex", alignItems: "center", justifyContent: "center",
-        background: "rgba(255,255,255,0.88)", backdropFilter: "blur(12px)",
+        background: "rgba(245,240,235,0.9)", backdropFilter: "blur(12px)",
         opacity: visible ? 1 : 0, transition: "opacity 0.3s ease",
         cursor: "pointer",
       }}
@@ -49,10 +49,14 @@ function CelebrationOverlay({ celebration, onDismiss }) {
         animation: "fadeInScale 0.4s ease",
       }}>
         <div style={{ fontSize: "56px", marginBottom: "16px" }}>{"\u{1F389}"}</div>
-        <div style={{ fontSize: "26px", fontWeight: 900, color: "#1A1A2E", marginBottom: "6px", letterSpacing: "-0.5px" }}>
-          HALFWAY THERE!
+        <div style={{
+          fontFamily: "'Playfair Display', Georgia, serif",
+          fontSize: "24px", fontWeight: 700, color: "#2C2520", marginBottom: "6px",
+          letterSpacing: "1px", textTransform: "uppercase",
+        }}>
+          Halfway There!
         </div>
-        <div style={{ fontSize: "14px", color: "#6B7280", lineHeight: 1.5 }}>
+        <div style={{ fontSize: "14px", color: "#6B5E54", lineHeight: 1.5 }}>
           You're crushing it — keep going!
         </div>
       </div>

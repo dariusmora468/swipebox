@@ -166,9 +166,9 @@ function EmailCard({ email, isTop, onSwipe, onTap, style }) {
 
           {/* Subject */}
           <h3 style={{
-            fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: "18px", fontWeight: 600, color: "#2C2520",
-            margin: "0 0 10px", lineHeight: 1.4,
+            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontSize: "17px", fontWeight: 700, color: "#2C2520",
+            margin: "0 0 10px", lineHeight: 1.45, letterSpacing: "0.1px",
           }}>{email.subject}</h3>
 
           {/* Summary */}
