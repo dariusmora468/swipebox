@@ -1,12 +1,7 @@
 'use client';
-import { useState } from 'react';
 import { ACTION_ICONS } from '../lib/constants';
 
-function EmailModal({ email, onClose, onSwipe, onForward, onSnooze }) {
-  const [editedReply, setEditedReply] = useState(email.aiReply || "");
-  const [isEditing, setIsEditing] = useState(false);
-  const [forwardTo, setForwardTo] = useState("");
-  const [showForward, setShowForward] = useState(false);
+function EmailModal({ email, onClose }) {
 
   return (
     <div style={{
@@ -151,71 +146,6 @@ function EmailModal({ email, onClose, onSwipe, onForward, onSnooze }) {
           </div>
         )}
 
-        {/* Forward Section */}
-        {showForward && (
-          <div style={{ padding: "0 28px 20px" }}>
-            <div style={{ padding: "16px", borderRadius: "14px", background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.15)" }}>
-              <div style={{ fontSize: "12px", fontWeight: 700, color: "#60a5fa", marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Forward Email</div>
-              <input
-                type="email" value={forwardTo} onChange={(e) => setForwardTo(e.target.value)}
-                placeholder="Enter email address..."
-                style={{
-                  width: "100%", padding: "12px 14px", borderRadius: "10px",
-                  border: "1px solid rgba(96,165,250,0.2)", background: "rgba(0,0,0,0.2)",
-                  color: "#e2e8f0", fontSize: "14px", fontFamily: "inherit",
-                  outline: "none", boxSizing: "border-box",
-                }} />
-              <div style={{ display: "flex", gap: "8px", marginTop: "10px", justifyContent: "flex-end" }}>
-                <button onClick={() => setShowForward(false)}
-                  style={{ padding: "8px 18px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", cursor: "pointer", fontSize: "13px", fontWeight: 600, color: "#94a3b8" }}>Cancel</button>
-                <button onClick={() => { onForward(forwardTo); setShowForward(false); setForwardTo(""); }}
-                  style={{ padding: "8px 18px", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #2563eb, #60a5fa)", color: "#fff", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>Forward</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div style={{
-          padding: "0 28px 28px",
-          display: "flex", gap: "8px", flexWrap: "wrap",
-        }}>
-          {email.aiReply ? (
-            <button onClick={() => onSwipe("right", editedReply)} style={{
-              flex: 1, padding: "12px 16px", borderRadius: "12px", border: "none",
-              background: "linear-gradient(135deg, #059669, #34d399)",
-              color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer",
-              minWidth: "100px",
-            }}>{"\u2713"} Send Reply</button>
-          ) : (
-            <button onClick={() => onSwipe("right", null)} style={{
-              flex: 1, padding: "12px 16px", borderRadius: "12px", border: "none",
-              background: "linear-gradient(135deg, #059669, #34d399)",
-              color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer",
-              minWidth: "100px",
-            }}>{"\u2713"} Done</button>
-          )}
-          <button onClick={() => onSwipe("left")} style={{
-            padding: "12px 16px", borderRadius: "12px",
-            border: "1px solid rgba(251,146,60,0.3)", background: "rgba(251,146,60,0.08)",
-            color: "#fb923c", fontSize: "13px", fontWeight: 700, cursor: "pointer",
-          }}>Mark Read</button>
-          <button onClick={() => setShowForward(true)} style={{
-            padding: "12px 16px", borderRadius: "12px",
-            border: "1px solid rgba(96,165,250,0.3)", background: "rgba(96,165,250,0.08)",
-            color: "#60a5fa", fontSize: "13px", fontWeight: 700, cursor: "pointer",
-          }}>Forward</button>
-          <button onClick={() => onSnooze()} style={{
-            padding: "12px 16px", borderRadius: "12px",
-            border: "1px solid rgba(129,140,248,0.3)", background: "rgba(129,140,248,0.08)",
-            color: "#818cf8", fontSize: "13px", fontWeight: 700, cursor: "pointer",
-          }}>Snooze</button>
-          <button onClick={() => onSwipe("down")} style={{
-            padding: "12px 16px", borderRadius: "12px",
-            border: "1px solid rgba(168,85,247,0.3)", background: "rgba(168,85,247,0.08)",
-            color: "#a855f7", fontSize: "13px", fontWeight: 700, cursor: "pointer",
-          }}>Unsub</button>
-        </div>
       </div>
     </div>
   );
