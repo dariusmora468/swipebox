@@ -236,7 +236,7 @@ export default function SwipeBox() {
   const actionColors = { right: "#34d399", left: "#fb923c", up: "#818cf8", down: "#a855f7" };
 
   if (isAuthenticated === null || (isAuthenticated && loading)) {
-    return <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}><LoadingScreen message={loadingMessage} /></div>;
+    return <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#FFFFFF" }}><LoadingScreen message={loadingMessage} /></div>;
   }
   if (isAuthenticated === false) return <LoginScreen />;
 
@@ -259,52 +259,52 @@ export default function SwipeBox() {
   const progressPercent = totalEmails > 0 ? (totalProcessed / totalEmails) * 100 : 0;
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#FFFFFF" }}>
       {/* Header */}
-      <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(10, 10, 15, 0.8)", backdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 10 }}>
+      <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(0,0,0,0.06)", background: "rgba(255,255,255,0.9)", backdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "16px" }}>{"\u2709"}</div>
+          <div style={{ width: "36px", height: "36px", borderRadius: "12px", background: "linear-gradient(135deg, #4F46E5, #7C3AED)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "16px" }}>{"\u2709"}</div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: "17px", color: "#f1f5f9", letterSpacing: "-0.3px" }}>SwipeBox</div>
-            {accounts.length > 0 && <div style={{ fontSize: "11px", color: "#64748b", marginTop: "1px" }}>{accounts.length} inbox{accounts.length > 1 ? "es" : ""} connected</div>}
+            <div style={{ fontWeight: 800, fontSize: "17px", color: "#1A1A2E", letterSpacing: "-0.3px" }}>SwipeBox</div>
+            {accounts.length > 0 && <div style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "1px" }}>{accounts.length} inbox{accounts.length > 1 ? "es" : ""} connected</div>}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          {emails.length > 0 && <div style={{ padding: "5px 14px", borderRadius: "20px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", fontSize: "13px", fontWeight: 700, color: "#94a3b8" }}>{emails.length} left</div>}
-          <button onClick={() => setShowSettings(true)} title="Settings" style={{ width: "32px", height: "32px", borderRadius: "50%", border: "1.5px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b", fontSize: "16px", cursor: "pointer", lineHeight: 1 }}>{"\u2699"}</button>
+          {emails.length > 0 && <div style={{ padding: "5px 14px", borderRadius: "20px", background: "#F5F5F7", border: "1px solid rgba(0,0,0,0.06)", fontSize: "13px", fontWeight: 700, color: "#6B7280" }}>{emails.length} left</div>}
+          <button onClick={() => setShowSettings(true)} title="Settings" style={{ width: "32px", height: "32px", borderRadius: "50%", border: "1.5px solid rgba(0,0,0,0.08)", background: "#F5F5F7", display: "flex", alignItems: "center", justifyContent: "center", color: "#6B7280", fontSize: "16px", cursor: "pointer", lineHeight: 1 }}>{"\u2699"}</button>
         </div>
       </div>
 
       {/* Enhanced Progress Bar */}
       {totalEmails > 0 && (
-        <div style={{ padding: "14px 20px", background: "rgba(255,255,255,0.02)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+        <div style={{ padding: "14px 20px", background: "#FAFAFA", borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ fontSize: "16px" }}>{progressPercent === 100 ? "\u{1F389}" : "\u26A1"}</span>
-              <span style={{ fontSize: "13px", fontWeight: 700, color: progressPercent === 100 ? "#34d399" : "#818cf8" }}>
+              <span style={{ fontSize: "13px", fontWeight: 700, color: progressPercent === 100 ? "#10B981" : "#4F46E5" }}>
                 {emails.length > 0 ? "Swiping to Inbox Zero" : "Inbox Zero Achieved!"}
               </span>
             </div>
-            <span style={{ fontSize: "15px", fontWeight: 800, color: progressPercent === 100 ? "#34d399" : "#f1f5f9" }}>
+            <span style={{ fontSize: "15px", fontWeight: 800, color: progressPercent === 100 ? "#10B981" : "#1A1A2E" }}>
               {Math.round(progressPercent)}%
             </span>
           </div>
-          <div style={{ height: "8px", borderRadius: "4px", background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+          <div style={{ height: "8px", borderRadius: "4px", background: "rgba(0,0,0,0.06)", overflow: "hidden" }}>
             <div style={{
               height: "100%", width: `${progressPercent}%`,
-              background: progressPercent === 100 ? "linear-gradient(90deg, #34d399, #6ee7b7)" : "linear-gradient(90deg, #6366f1, #818cf8, #a78bfa, #34d399)",
+              background: progressPercent === 100 ? "linear-gradient(90deg, #10B981, #34d399)" : "linear-gradient(90deg, #4F46E5, #7C3AED, #A78BFA)",
               backgroundSize: "200% 100%",
               animation: progressPercent < 100 ? "shimmer 2s linear infinite" : "none",
               transition: "width 0.5s ease", borderRadius: "4px",
-              boxShadow: `0 0 16px ${progressPercent === 100 ? "rgba(52,211,153,0.5)" : "rgba(99,102,241,0.4)"}`,
+              boxShadow: `0 0 12px ${progressPercent === 100 ? "rgba(16,185,129,0.3)" : "rgba(79,70,229,0.25)"}`,
             }} />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px" }}>
-            <span style={{ fontSize: "12px", color: "#475569" }}>
+            <span style={{ fontSize: "12px", color: "#9CA3AF" }}>
               {totalProcessed} of {totalEmails} emails processed
             </span>
             {emails.length > 0 && emails.length <= 5 && (
-              <span style={{ fontSize: "12px", color: "#818cf8", fontWeight: 600 }}>
+              <span style={{ fontSize: "12px", color: "#4F46E5", fontWeight: 600 }}>
                 Almost there! {"\u{1F4AA}"}
               </span>
             )}
@@ -316,7 +316,7 @@ export default function SwipeBox() {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative", overflow: "hidden" }}>
         {emails.length > 0 ? (
           <>
-            <div style={{ display: "flex", justifyContent: "center", gap: "24px", padding: "14px 20px 8px", fontSize: "11px", color: "#475569", fontWeight: 600, letterSpacing: "0.5px", textTransform: "uppercase" }}>
+            <div style={{ display: "flex", justifyContent: "center", gap: "24px", padding: "14px 20px 8px", fontSize: "11px", color: "#9CA3AF", fontWeight: 600, letterSpacing: "0.5px", textTransform: "uppercase" }}>
               <span>{"\u2190"} Mark Read</span><span>{"\u2191"} Snooze</span><span>{"\u2193"} Unsub</span><span>{emails[0]?.aiReply ? "Send" : "Done"} {"\u2192"}</span>
             </div>
             <div style={{ flex: 1, width: "100%", maxWidth: "500px", position: "relative", padding: "0 20px", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -325,13 +325,7 @@ export default function SwipeBox() {
                 return <EmailCard key={email.id} email={email} isTop={isTop} onSwipe={handleSwipe} onTap={(e) => setExpandedEmail(e)} style={{ top: isTop ? "0px" : "8px" }} />;
               })}
             </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "14px", padding: "16px 20px 36px" }}>
-              <ActionButton icon={"\u{1F515}"} label="Unsub" color="#a855f7" size={46} onClick={() => handleSwipe("down")} disabled={actionInProgress} />
-              <ActionButton icon={"\u2713"} label="Mark Read" color="#fb923c" size={54} onClick={() => handleSwipe("left")} disabled={actionInProgress} />
-              <ActionButton icon={emails[0]?.aiReply ? "\u2197" : "\u2713"} label={emails[0]?.aiReply ? "Send Reply" : "Done"} color="#34d399" size={64} onClick={() => handleSwipe("right", emails[0]?.aiReply)} disabled={actionInProgress} />
-              <ActionButton icon={"\u23F0"} label="Snooze" color="#818cf8" size={54} onClick={() => handleSwipe("up")} disabled={actionInProgress} />
-              <ActionButton icon={"\u21A9"} label="Undo" color="#64748b" size={46} onClick={handleUndo} disabled={actionInProgress || history.length === 0} />
-            </div>
+            
           </>
         ) : (
           <CompletionScreen stats={stats} onRefresh={fetchEmails} />
@@ -379,10 +373,10 @@ export default function SwipeBox() {
 
       {/* Toast */}
       {showToast && lastAction && (
-        <div style={{ position: "fixed", bottom: "100px", left: "50%", transform: "translateX(-50%)", padding: "12px 24px", borderRadius: "16px", background: "rgba(255,255,255,0.08)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.1)", color: "#f1f5f9", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "10px", boxShadow: "0 8px 32px rgba(0,0,0,0.4)", zIndex: 100, animation: "slideUp 0.3s ease", whiteSpace: "nowrap" }}>
+        <div style={{ position: "fixed", bottom: "100px", left: "50%", transform: "translateX(-50%)", padding: "12px 24px", borderRadius: "16px", background: "rgba(0,0,0,0.06)", backdropFilter: "blur(20px)", border: "1px solid rgba(0,0,0,0.08)", color: "#1A1A2E", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "10px", boxShadow: "0 8px 32px rgba(0,0,0,0.4)", zIndex: 100, animation: "slideUp 0.3s ease", whiteSpace: "nowrap" }}>
           <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: actionColors[lastAction.direction], flexShrink: 0 }} />
           {lastAction.label}
-          <button onClick={handleUndo} style={{ marginLeft: "8px", padding: "4px 14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.15)", background: "transparent", color: "#f1f5f9", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>Undo</button>
+          <button onClick={handleUndo} style={{ marginLeft: "8px", padding: "4px 14px", borderRadius: "10px", border: "1px solid rgba(0,0,0,0.08)", background: "transparent", color: "#1A1A2E", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>Undo</button>
         </div>
       )}
     </div>
