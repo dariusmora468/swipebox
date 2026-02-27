@@ -233,7 +233,7 @@ export default function SwipeBox() {
     } catch (err) { console.error("Remove failed:", err); }
   }, []);
 
-  const actionColors = { right: "#34d399", left: "#fb923c", up: "#818cf8", down: "#a855f7" };
+  const actionColors = { right: "#10B981", left: "#D97706", up: "#4F46E5", down: "#7C3AED" };
 
   if (isAuthenticated === null || (isAuthenticated && loading)) {
     return <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#FFFFFF" }}><LoadingScreen message={loadingMessage} /></div>;
@@ -242,14 +242,14 @@ export default function SwipeBox() {
 
 
   if (fetchError) return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '2rem', textAlign: 'center', background: '#0a0a0a', color: '#fff' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '2rem', textAlign: 'center', background: '#FFFFFF', color: '#1A1A2E' }}>
       <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
       <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Connection Error</h2>
-      <p style={{ color: '#999', marginBottom: '1.5rem', maxWidth: '300px' }}>{fetchError}</p>
-      <button onClick={() => { setFetchError(null); fetchEmails(); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: '#fff', color: '#000', border: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}>
+      <p style={{ color: '#6B7280', marginBottom: '1.5rem', maxWidth: '300px' }}>{fetchError}</p>
+      <button onClick={() => { setFetchError(null); fetchEmails(); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: '#4F46E5', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}>
         Try Again
       </button>
-      <button onClick={() => { setFetchError(null); setIsAuthenticated(false); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: 'transparent', color: '#999', border: '1px solid #333', fontWeight: 500, cursor: 'pointer', fontSize: '0.875rem', marginTop: '0.75rem' }}>
+      <button onClick={() => { setFetchError(null); setIsAuthenticated(false); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: 'transparent', color: '#6B7280', border: '1px solid rgba(0,0,0,0.1)', fontWeight: 500, cursor: 'pointer', fontSize: '0.875rem', marginTop: '0.75rem' }}>
         Reconnect Gmail
       </button>
     </div>
