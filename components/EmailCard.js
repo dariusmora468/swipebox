@@ -68,7 +68,7 @@ function EmailCard({ email, isTop, onSwipe, onTap, style }) {
   return (
     <div ref={cardRef} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}
       style={{
-        position: "absolute", width: "100%", maxWidth: "440px", left: "50%",
+        position: "absolute", width: "calc(100% - 40px)", maxWidth: "440px", left: "50%",
         cursor: isTop ? (isDragging ? "grabbing" : "grab") : "default",
         transform: `translateX(-50%) translateX(${offset.x}px) translateY(${offset.y}px) rotate(${rotation}deg) scale(${scale})`,
         transition: isDragging ? "none" : "transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
