@@ -171,7 +171,7 @@ function EmailCard({ email, isTop, onSwipe, onTap, style }) {
         {!email.aiReply && isTop && (
           <div style={{ padding: "0 28px 28px" }}>
             <div style={{ padding: "12px", borderRadius: "14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center", fontSize: "13px", color: "#475569" }}>
-              No reply needed Ã¢ÂÂ tap to view full email
+              No reply needed — tap to view full email
             </div>
           </div>
         )}
