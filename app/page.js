@@ -331,10 +331,10 @@ export default function SwipeBox() {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative", overflow: "hidden" }}>
         {emails.length > 0 ? (
           <>
-            <div style={{ flex: 1, width: "100%", maxWidth: "500px", position: "relative", padding: "24px 20px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ flex: 1, width: "100%", maxWidth: "500px", position: "relative", padding: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}>
               {emails.slice(0, 2).reverse().map((email, i) => {
                 const isTop = i === Math.min(emails.length, 2) - 1;
-                return <EmailCard key={email.id} email={email} isTop={isTop} onSwipe={handleSwipe} onTap={(e) => setExpandedEmail(e)} style={{ top: isTop ? "0px" : "8px" }} />;
+                return <EmailCard key={email.id} email={email} isTop={isTop} onSwipe={handleSwipe} onTap={(e) => setExpandedEmail(e)} style={{ top: isTop ? "16px" : "24px" }} />;
               })}
             </div>
 
