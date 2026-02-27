@@ -128,30 +128,58 @@ export default function SwipeBox() {
     setExpandedEmail(null);
     const current = emails[0];
 
-    if (direction === "up") {
+    // LEFT = Snooze (opens picker)
+    if (direction === "left") {
       setPendingSnoozeEmail(current);
       setShowSnoozePicker(true);
       return;
     }
 
-    const actionMap = { right: "send", left: "mark_read", down: "unsubscribe" };
-    const statMap = { right: "sent", left: "read", down: "unsubscribed" };
+    // UP = Reply / Send AI Draft
+    if (direction === "up") {
+      if (current.aiReply) {
+        // Has AI draft — send it immediately
+        setEmails((e) => e.slice(1));
+        setHistory((h) => [...h, { email: current, direction }]);
+        setStats((s) => ({ ...s, sent: s.sent + 1 }));
+        setLastAction({ direction, label: `Reply sent to ${current.from}` });
+        setActionInProgress(true);
+        try {
+          await fetch("/api/emails/action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "send", email: current, replyText: current.aiReply }),
+          });
+        } catch (err) { console.error("Reply failed:", err); }
+        setActionInProgress(false);
+      } else {
+        // No AI draft — open compose screen
+        setComposeState({ email: current, mode: "reply" });
+      }
+      return;
+    }
 
-    const rightLabel = replyText ? `Reply sent to ${current.from}` : `Done: ${current.from}`;
-    const labelMap = {
-      right: rightLabel,
-      left: `Marked read: ${current.from}`,
-      down: `Unsubscribed: ${current.from}`,
-    };
+    // RIGHT = Mark as Read
+    // DOWN = Delete / Unsubscribe
+    const isDown = direction === "down";
+    const isUnsub = isDown && (current.suggestUnsubscribe || current.previouslyUnsubscribed);
+
+    const statKey = isDown ? (isUnsub ? "unsubscribed" : "read") : "read";
+    const label = direction === "right"
+      ? `Marked read: ${current.from}`
+      : isUnsub
+        ? `Unsubscribed: ${current.from}`
+        : `Deleted: ${current.from}`;
 
     setEmails((e) => e.slice(1));
     setHistory((h) => [...h, { email: current, direction }]);
-    setStats((s) => ({ ...s, [statMap[direction]]: s[statMap[direction]] + 1 }));
-    setLastAction({ direction, label: labelMap[direction] });
+    setStats((s) => ({ ...s, [statKey]: s[statKey] + 1 }));
+    setLastAction({ direction, label });
 
     setActionInProgress(true);
     try {
-      if (direction === "down") {
+      if (isUnsub) {
+        // Unsubscribe flow
         const unsubRes = await fetch("/api/emails/unsubscribe", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -172,15 +200,19 @@ export default function SwipeBox() {
           setUnsubSender(current.from);
           setShowUnsubOverlay(true);
         }
-      } else {
+      } else if (isDown) {
+        // Delete
         await fetch("/api/emails/action", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: actionMap[direction],
-            email: current,
-            replyText: direction === "right" ? replyText : undefined,
-          }),
+          body: JSON.stringify({ action: "delete", email: current }),
+        });
+      } else {
+        // Right = Mark as Read
+        await fetch("/api/emails/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "mark_read", email: current }),
         });
       }
     } catch (err) { console.error("Action failed:", err); }
@@ -248,7 +280,7 @@ export default function SwipeBox() {
     } catch (err) { console.error("Remove failed:", err); }
   }, []);
 
-  const actionColors = { right: "#7A8C6E", left: "#A0775A", up: "#B8963E", down: "#B07070" };
+  const actionColors = { right: "#A0775A", left: "#B8963E", up: "#7A8C6E", down: "#B07070" };
 
   if (isAuthenticated === null || (isAuthenticated && loading)) {
     return <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#F5F0EB" }}><LoadingScreen message={loadingMessage} /></div>;
@@ -372,10 +404,10 @@ export default function SwipeBox() {
             <div style={{ width: "100%", padding: "12px 24px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
               <div style={{ display: "flex", justifyContent: "space-around", width: "100%", maxWidth: "320px" }}>
                 {[
-                  { arrow: "\u2190", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.left) || {}).label || "Read" },
-                  { arrow: "\u2191", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.up) || {}).label || "Snooze" },
-                  { arrow: "\u2193", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.down) || {}).label || "Unsub" },
-                  { arrow: "\u2192", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.right) || {}).label || "Done" },
+                  { arrow: "\u2190", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.left) || {}).label || "Snooze" },
+                  { arrow: "\u2191", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.up) || {}).label || "Reply" },
+                  { arrow: "\u2193", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.down) || {}).label || "Delete" },
+                  { arrow: "\u2192", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.right) || {}).label || "Read" },
                 ].map((item, idx) => (
                   <div key={idx} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", minWidth: "56px" }}>
                     <span style={{ fontSize: "16px", color: "#B8A99A", fontWeight: 300, lineHeight: 1 }}>{item.arrow}</span>

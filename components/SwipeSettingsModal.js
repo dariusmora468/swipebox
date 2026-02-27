@@ -5,7 +5,7 @@ const AVAILABLE_ACTIONS = [
   { id: 'mark_read', label: 'Mark Read', icon: '\u{1F4D6}', color: '#A0775A' },
   { id: 'snooze', label: 'Snooze', icon: '\u23F0', color: '#B8963E' },
   { id: 'unsubscribe', label: 'Unsubscribe', icon: '\u{1F6AB}', color: '#B07070' },
-  { id: 'done', label: 'Done / Send', icon: '\u2713', color: '#7A8C6E' },
+  { id: 'done', label: 'Reply / Send', icon: '\u2713', color: '#7A8C6E' },
   { id: 'archive', label: 'Archive', icon: '\u{1F4E6}', color: '#6B5E54' },
   { id: 'delete', label: 'Delete', icon: '\u{1F5D1}\uFE0F', color: '#B07070' },
   { id: 'star', label: 'Star', icon: '\u2B50', color: '#B8963E' },
@@ -19,10 +19,10 @@ const DIRECTION_META = {
 };
 
 const DEFAULT_MAPPINGS = {
-  left: 'mark_read',
-  right: 'done',
-  up: 'snooze',
-  down: 'unsubscribe',
+  right: 'mark_read',
+  left: 'snooze',
+  up: 'done',
+  down: 'delete',
 };
 
 function getSwipeMappings() {

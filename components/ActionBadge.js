@@ -2,10 +2,10 @@
 
 function ActionBadge({ direction, opacity, hasReply }) {
   const config = {
-    right: { label: hasReply ? "SEND" : "DONE", color: "#7A8C6E", glow: "rgba(122,140,110,0.3)" },
-    left: { label: "READ", color: "#A0775A", glow: "rgba(160,119,90,0.3)" },
-    up: { label: "SNOOZE", color: "#B8963E", glow: "rgba(184,150,62,0.3)" },
-    down: { label: "UNSUB", color: "#B07070", glow: "rgba(176,112,112,0.3)" },
+    right: { label: "READ", color: "#A0775A", glow: "rgba(160,119,90,0.3)" },
+    left: { label: "SNOOZE", color: "#B8963E", glow: "rgba(184,150,62,0.3)" },
+    up: { label: hasReply ? "SEND" : "REPLY", color: "#7A8C6E", glow: "rgba(122,140,110,0.3)" },
+    down: { label: "DELETE", color: "#B07070", glow: "rgba(176,112,112,0.3)" },
   };
   const c = config[direction];
   if (!c) return null;
