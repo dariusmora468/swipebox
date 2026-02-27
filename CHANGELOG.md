@@ -4,6 +4,20 @@ All notable changes to SwipeBox are documented here. Most recent changes at top.
 
 ---
 
+## [0.6.0] - 2026-02-27
+
+### Added
+- Jest test framework with Babel config for ESM module support
+- Test suite for `lib/logger.js` — structured logging output, error handling, request logging
+- Test suite for `lib/snooze.js` — time calculations (hours, tomorrow, weekend, nextWeek), localStorage persistence, expired snooze cleanup
+- Test suite for `lib/ai.js` — AI email processing, batch processing, urgency sorting, error fallbacks
+- Test suite for `GET /api/emails` — authentication checks, inbox_zero, email processing pipeline, auth/server error handling
+- Test suite for `POST /api/emails/action` — all 8 action types (send, mark_read, archive, delete, snooze, unsnooze, forward, unsnooze_batch), input validation
+- Test suite for `POST /api/emails/unsubscribe` — one-click RFC 8058, link fallback, body scanning, error handling
+- `npm test` and `npm run test:coverage` scripts in package.json
+
+---
+
 ## [0.5.0] - 2026-02-27
 
 ### Added
@@ -31,7 +45,7 @@ All notable changes to SwipeBox are documented here. Most recent changes at top.
 
 ## [e15862f] - 2026-02-27
 ### Fix: Implement fetchAllAccountEmails and proper error handling
-- **Root cause identified:** `fetchAllAccountEmails` was imported by the email API route but never implemented in `gmail.js`. The import resolved to `undefined`, causing a TypeError on every call, which was silently caught and returned as an empty array Ã¢ÂÂ making the app show "Inbox Zero" instead of an error.
+- **Root cause identified:** `fetchAllAccountEmails` was imported by the email API route but never implemented in `gmail.js`. The import resolved to `undefined`, causing a TypeError on every call, which was silently caught and returned as an empty array ÃÂ¢ÃÂÃÂ making the app show "Inbox Zero" instead of an error.
 - **Files modified:**
   - `lib/gmail.js` - Added `fetchAllAccountEmails()` function that fetches emails from Gmail API for all connected accounts using `gmail.users.messages.list` and `gmail.users.messages.get`, with proper auth error propagation
   - `app/api/emails/route.js` - Updated catch block to detect auth errors via `isAuthError` flag, `error.code === 401`, or `invalid_grant` message
