@@ -8,6 +8,7 @@ import SettingsModal from '../components/SettingsModal';
 import EmailCard from '../components/EmailCard';
 import ActionButton from '../components/ActionButton';
 import SwipeSettingsModal, { AVAILABLE_ACTIONS, getSwipeMappings } from '../components/SwipeSettingsModal';
+import ComposeCard from '../components/ComposeCard';
 import CompletionScreen from '../components/CompletionScreen';
 import LoadingScreen from '../components/LoadingScreen';
 import LoginScreen from '../components/LoginScreen';
@@ -37,6 +38,7 @@ export default function SwipeBox() {
   const [unsubUrl, setUnsubUrl] = useState(null);
   const [unsubSender, setUnsubSender] = useState("");
   const [showSwipeSettings, setShowSwipeSettings] = useState(false);
+  const [composeState, setComposeState] = useState(null); // { email, mode: "reply"|"forward" }
   const [swipeMappings, setSwipeMappings] = useState(() => getSwipeMappings());
   const [unsubscribedSenders, setUnsubscribedSenders] = useState(() => {
     if (typeof window !== "undefined") {
@@ -361,16 +363,40 @@ export default function SwipeBox() {
       </div>
 
       {/* Expanded Email Modal */}
-      {expandedEmail && (
+      {expandedEmail && !composeState && (
         <EmailModal
           email={expandedEmail}
           onClose={() => setExpandedEmail(null)}
-          onSwipe={(dir, text) => { handleSwipe(dir, text); }}
-          onForward={handleForward}
-          onSnooze={() => {
-            setPendingSnoozeEmail(expandedEmail);
-            setShowSnoozePicker(true);
+          onReply={(em) => setComposeState({ email: em, mode: "reply" })}
+          onForward={(em) => setComposeState({ email: em, mode: "forward" })}
+        />
+      )}
+
+      {/* Compose Card (Reply / Forward) */}
+      {composeState && (
+        <ComposeCard
+          email={composeState.email}
+          mode={composeState.mode}
+          onSend={async ({ mode, email: em, replyText, forwardTo: fwdTo }) => {
+            try {
+              if (mode === "reply") {
+                await fetch("/api/emails/action", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ action: "send", email: em, replyText }),
+                });
+                setLastAction({ direction: "right", label: `Reply sent to ${em.from}` });
+              } else {
+                await fetch("/api/emails/action", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ action: "forward", email: em, forwardTo: fwdTo }),
+                });
+                setLastAction({ direction: "right", label: `Forwarded to ${fwdTo}` });
+              }
+            } catch (err) { console.error("Send failed:", err); }
           }}
+          onClose={() => setComposeState(null)}
         />
       )}
 

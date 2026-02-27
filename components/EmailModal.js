@@ -1,7 +1,7 @@
 'use client';
 import { ACTION_ICONS } from '../lib/constants';
 
-function EmailModal({ email, onClose }) {
+function EmailModal({ email, onClose, onReply, onForward }) {
 
   return (
     <div style={{
@@ -15,6 +15,7 @@ function EmailModal({ email, onClose }) {
         background: "#FFFFFF", backdropFilter: "blur(20px)",
         borderRadius: "24px", border: "1px solid rgba(0,0,0,0.06)",
         boxShadow: "0 24px 80px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.06)", animation: "fadeInScale 0.3s ease",
+        paddingBottom: "80px", position: "relative",
       }} onClick={(e) => e.stopPropagation()}>
 
         {/* Header */}
@@ -35,7 +36,7 @@ function EmailModal({ email, onClose }) {
                 {email.account && (
                   <span style={{
                     padding: "1px 8px", borderRadius: "6px",
-                    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
+                    background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.06)",
                     color: "#9CA3AF", fontSize: "10px", fontWeight: 600,
                   }}>{email.account}</span>
                 )}
@@ -106,7 +107,7 @@ function EmailModal({ email, onClose }) {
           </div>
         )}
 
-        {/* AI Reply */}
+        {/* AI Reply Preview (read-only) */}
         {email.aiReply && (
           <div style={{ padding: "0 28px 20px" }}>
             <div style={{
@@ -118,33 +119,50 @@ function EmailModal({ email, onClose }) {
                   {"\u2728"} AI Draft Reply
                 </span>
               </div>
-              {isEditing ? (
-                <div>
-                  <textarea value={editedReply} onChange={(e) => setEditedReply(e.target.value)}
-                    style={{
-                      width: "100%", minHeight: "120px", padding: "14px",
-                      border: "1px solid rgba(52,211,153,0.2)", borderRadius: "12px",
-                      fontSize: "14px", lineHeight: 1.6, resize: "vertical",
-                      fontFamily: "inherit", outline: "none", boxSizing: "border-box",
-                      background: "rgba(0,0,0,0.2)", color: "#e2e8f0",
-                    }} />
-                  <div style={{ display: "flex", gap: "8px", marginTop: "10px", justifyContent: "flex-end" }}>
-                    <button onClick={() => { setEditedReply(email.aiReply); setIsEditing(false); }}
-                      style={{ padding: "8px 18px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", cursor: "pointer", fontSize: "13px", fontWeight: 600, color: "#6B7280" }}>Reset</button>
-                    <button onClick={() => setIsEditing(false)}
-                      style={{ padding: "8px 18px", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #059669, #34d399)", color: "#fff", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>Save</button>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <p style={{ fontSize: "14px", color: "#a7f3d0", lineHeight: 1.65, margin: 0 }}>{editedReply}</p>
-                  <button onClick={() => setIsEditing(true)}
-                    style={{ marginTop: "12px", padding: "7px 16px", borderRadius: "10px", border: "1px solid rgba(52,211,153,0.2)", background: "transparent", cursor: "pointer", fontSize: "12px", fontWeight: 600, color: "#34d399" }}>Edit Reply</button>
-                </div>
-              )}
+              <p style={{ fontSize: "14px", color: "#374151", lineHeight: 1.65, margin: 0 }}>{email.aiReply}</p>
+              <div style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "10px" }}>
+                Tap Reply below to edit & send
+              </div>
             </div>
           </div>
         )}
+
+        {/* Floating Reply & Forward buttons */}
+        <div style={{
+          position: "sticky", bottom: 0, left: 0, right: 0,
+          padding: "12px 28px 16px",
+          background: "linear-gradient(to top, #FFFFFF 70%, rgba(255,255,255,0))",
+          display: "flex", gap: "10px",
+        }}>
+          <button
+            onClick={() => onReply && onReply(email)}
+            style={{
+              flex: 1, padding: "14px", borderRadius: "14px",
+              background: "#FFFFFF", border: "1px solid rgba(79,70,229,0.15)",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+              color: "#4F46E5", fontSize: "14px", fontWeight: 700,
+              cursor: "pointer", display: "flex", alignItems: "center",
+              justifyContent: "center", gap: "8px",
+              transition: "all 0.2s ease",
+            }}
+          >
+            <span style={{ fontSize: "16px" }}>{"\u21A9"}</span> Reply
+          </button>
+          <button
+            onClick={() => onForward && onForward(email)}
+            style={{
+              flex: 1, padding: "14px", borderRadius: "14px",
+              background: "#FFFFFF", border: "1px solid rgba(124,58,237,0.15)",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+              color: "#7C3AED", fontSize: "14px", fontWeight: 700,
+              cursor: "pointer", display: "flex", alignItems: "center",
+              justifyContent: "center", gap: "8px",
+              transition: "all 0.2s ease",
+            }}
+          >
+            <span style={{ fontSize: "16px" }}>{"\u21AA"}</span> Forward
+          </button>
+        </div>
 
       </div>
     </div>
