@@ -36,7 +36,6 @@ export default function SwipeBox() {
   const [unsubUrl, setUnsubUrl] = useState(null);
   const [unsubSender, setUnsubSender] = useState("");
   const [unsubscribedSenders, setUnsubscribedSenders] = useState(() => {
-  const [fetchError, setFetchError] = useState(null);
     if (typeof window !== "undefined") {
       try { return JSON.parse(localStorage.getItem("swipebox_unsubscribed") || "[]"); } catch { return []; }
     }
