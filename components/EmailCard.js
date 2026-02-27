@@ -75,12 +75,12 @@ function EmailCard({ email, isTop, onSwipe, onTap, style }) {
         zIndex: isTop ? 2 : 1, touchAction: "none", userSelect: "none", ...style,
       }}>
       <div style={{
-        background: `rgba(255, 255, 255, ${isTop ? 0.06 : 0.03})`,
-        borderRadius: "24px", border: `1px solid rgba(255, 255, 255, ${isTop ? 0.1 : 0.05})`,
-        boxShadow: isTop ? "0 20px 60px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)" : "0 10px 30px rgba(0,0,0,0.2)",
+        background: isTop ? "#FFFFFF" : "#F8F8FA",
+        borderRadius: "24px", border: `1px solid ${isTop ? "rgba(0,0,0,0.08)" : "rgba(0,0,0,0.04)"}`,
+        boxShadow: isTop ? "0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)" : "0 4px 16px rgba(0,0,0,0.04)" : "0 10px 30px rgba(0,0,0,0.2)",
         backdropFilter: "blur(40px)", overflow: "hidden", position: "relative",
       }}>
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: `linear-gradient(90deg, transparent, ${email.color || "#818cf8"}, transparent)`, opacity: isTop ? 0.6 : 0 }} />
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3px", borderRadius: "24px 24px 0 0", background: `linear-gradient(90deg, transparent, ${email.color || "#818cf8"}, transparent)`, opacity: isTop ? 0.6 : 0 }} />
 
         {isTop && (
           <>
@@ -95,50 +95,50 @@ function EmailCard({ email, isTop, onSwipe, onTap, style }) {
           <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "18px" }}>
             <div style={{
               width: "48px", height: "48px", borderRadius: "14px",
-              background: `linear-gradient(135deg, ${email.color || "#818cf8"}40, ${email.color || "#818cf8"}20)`,
-              border: `1px solid ${email.color || "#818cf8"}30`,
+              background: `linear-gradient(135deg, ${email.color || "#4F46E5"}20, ${email.color || "#4F46E5"}10)`,
+              border: `1px solid ${email.color || "#4F46E5"}15`,
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: email.color || "#818cf8", fontWeight: 700, fontSize: "17px", flexShrink: 0,
+              color: email.color || "#4F46E5", fontWeight: 700, fontSize: "17px", flexShrink: 0,
             }}>{email.avatar}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 700, fontSize: "16px", color: "#f1f5f9" }}>{email.from}</span>
-                <span style={{ fontSize: "12px", color: "#64748b", flexShrink: 0 }}>{email.time}</span>
+                <span style={{ fontWeight: 700, fontSize: "16px", color: "#1A1A2E" }}>{email.from}</span>
+                <span style={{ fontSize: "12px", color: "#9CA3AF", flexShrink: 0 }}>{email.time}</span>
               </div>
-              <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>{email.email}</div>
+              <div style={{ fontSize: "12px", color: "#9CA3AF", marginTop: "2px" }}>{email.email}</div>
             </div>
           </div>
 
           <div style={{ display: "flex", gap: "8px", marginBottom: "14px", flexWrap: "wrap" }}>
             <div style={{
               padding: "4px 12px", borderRadius: "8px",
-              background: `${email.color || "#94a3b8"}15`, border: `1px solid ${email.color || "#94a3b8"}25`,
-              color: email.color || "#94a3b8", fontSize: "11px", fontWeight: 600, letterSpacing: "0.3px", textTransform: "uppercase",
+              background: `${email.color || "#6B7280"}08`, border: `1px solid ${email.color || "#6B7280"}15`,
+              color: email.color || "#6B7280", fontSize: "11px", fontWeight: 600, letterSpacing: "0.3px", textTransform: "uppercase",
             }}>{email.category}</div>
             {email.previouslyUnsubscribed && (
               <div style={{
                 padding: "4px 12px", borderRadius: "8px",
-                background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.2)",
-                color: "#a855f7", fontSize: "11px", fontWeight: 600, textTransform: "uppercase",
+                background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.15)",
+                color: "#7C3AED", fontSize: "11px", fontWeight: 600, textTransform: "uppercase",
               }}>Previously Unsubscribed</div>
             )}
             {email.suggestUnsubscribe && !email.previouslyUnsubscribed && (
               <div style={{
                 padding: "4px 12px", borderRadius: "8px",
-                background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.2)",
-                color: "#fb923c", fontSize: "11px", fontWeight: 600, textTransform: "uppercase",
+                background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.15)",
+                color: "#D97706", fontSize: "11px", fontWeight: 600, textTransform: "uppercase",
               }}>Swipe \u2193 to Unsub</div>
             )}
             {email.urgency === "high" && (
-              <div style={{ padding: "4px 12px", borderRadius: "8px", background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.2)", color: "#f87171", fontSize: "11px", fontWeight: 600, textTransform: "uppercase" }}>Urgent</div>
+              <div style={{ padding: "4px 12px", borderRadius: "8px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.15)", color: "#EF4444", fontSize: "11px", fontWeight: 600, textTransform: "uppercase" }}>Urgent</div>
             )}
             {email.account && (
-              <div style={{ padding: "4px 12px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "#94a3b8", fontSize: "11px", fontWeight: 600 }}>{email.account.split("@")[0]}</div>
+              <div style={{ padding: "4px 12px", borderRadius: "8px", background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.06)", color: "#6B7280", fontSize: "11px", fontWeight: 600 }}>{email.account.split("@")[0]}</div>
             )}
           </div>
 
-          <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#f1f5f9", margin: "0 0 10px", lineHeight: 1.35 }}>{email.subject}</h3>
-          <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: 1.65, margin: "0 0 16px", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{email.summary || email.preview}</p>
+          <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#1A1A2E", margin: "0 0 10px", lineHeight: 1.35 }}>{email.subject}</h3>
+          <p style={{ fontSize: "14px", color: "#6B7280", lineHeight: 1.65, margin: "0 0 16px", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{email.summary || email.preview}</p>
 
           {/* Smart Action Chips on card */}
           {isTop && email.smartActions && email.smartActions.length > 0 && (
@@ -146,8 +146,8 @@ function EmailCard({ email, isTop, onSwipe, onTap, style }) {
               {email.smartActions.slice(0, 2).map((action, i) => (
                 <div key={i} style={{
                   padding: "5px 10px", borderRadius: "8px",
-                  background: "rgba(129, 140, 248, 0.08)", border: "1px solid rgba(129, 140, 248, 0.15)",
-                  fontSize: "11px", color: "#a5b4fc", fontWeight: 600,
+                  background: "rgba(79, 70, 229, 0.06)", border: "1px solid rgba(79, 70, 229, 0.1)",
+                  fontSize: "11px", color: "#4F46E5", fontWeight: 600,
                   display: "flex", alignItems: "center", gap: "4px",
                 }}>
                   <span>{ACTION_ICONS[action.type] || "\u26A1"}</span> {action.label}
@@ -161,16 +161,16 @@ function EmailCard({ email, isTop, onSwipe, onTap, style }) {
         {email.aiReply && isTop && (
           <div style={{ padding: "0 28px 28px" }}>
             <div style={{ padding: "14px", borderRadius: "14px", background: "rgba(52, 211, 153, 0.06)", border: "1px solid rgba(52, 211, 153, 0.12)" }}>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "#34d399", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{"\u2728"} AI Draft Reply</div>
-              <p style={{ fontSize: "13px", color: "#a7f3d0", lineHeight: 1.6, margin: 0, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{email.aiReply}</p>
-              <div style={{ fontSize: "11px", color: "#64748b", marginTop: "8px" }}>Tap card to expand & edit</div>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#059669", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{"\u2728"} AI Draft Reply</div>
+              <p style={{ fontSize: "13px", color: "#374151", lineHeight: 1.6, margin: 0, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{email.aiReply}</p>
+              <div style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "8px" }}>Tap card to expand & edit</div>
             </div>
           </div>
         )}
 
         {!email.aiReply && isTop && (
           <div style={{ padding: "0 28px 28px" }}>
-            <div style={{ padding: "12px", borderRadius: "14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center", fontSize: "13px", color: "#475569" }}>
+            <div style={{ padding: "12px", borderRadius: "14px", background: "rgba(0,0,0,0.02)", border: "1px solid rgba(0,0,0,0.04)", textAlign: "center", fontSize: "13px", color: "#475569" }}>
               No reply needed — tap to view full email
             </div>
           </div>
