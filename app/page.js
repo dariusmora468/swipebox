@@ -40,6 +40,7 @@ export default function SwipeBox() {
     }
     return [];
   });
+  const [fetchError, setFetchError] = useState(null);
 
   useEffect(() => { fetchEmails(); }, []);
 
@@ -79,8 +80,8 @@ export default function SwipeBox() {
       const res = await fetch("/api/emails");
       if (res.status === 401) { setIsAuthenticated(false); setLoading(false); return; }
       setIsAuthenticated(true);
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
         setFetchError(errData.error || 'Failed to load emails. Please try again.');
         setLoading(false);
         return;
@@ -239,13 +240,13 @@ export default function SwipeBox() {
 
   if (fetchError) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '2rem', textAlign: 'center', background: '#0a0a0a', color: '#fff' }}>
-      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>â ï¸</div>
+      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>Ã¢ÂÂ Ã¯Â¸Â</div>
       <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Connection Error</h2>
       <p style={{ color: '#999', marginBottom: '1.5rem', maxWidth: '300px' }}>{fetchError}</p>
       <button onClick={() => { setFetchError(null); fetchEmails(); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: '#fff', color: '#000', border: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}>
         Try Again
       </button>
-      <button onClick={() => { setFetchError(null); setAuthenticated(false); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: 'transparent', color: '#999', border: '1px solid #333', fontWeight: 500, cursor: 'pointer', fontSize: '0.875rem', marginTop: '0.75rem' }}>
+      <button onClick={() => { setFetchError(null); setIsAuthenticated(false); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: 'transparent', color: '#999', border: '1px solid #333', fontWeight: 500, cursor: 'pointer', fontSize: '0.875rem', marginTop: '0.75rem' }}>
         Reconnect Gmail
       </button>
     </div>
