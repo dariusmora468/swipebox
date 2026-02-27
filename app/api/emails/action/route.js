@@ -64,6 +64,7 @@ export async function POST(request) {
 
       case "mark_read":
         await markAsRead(tokens, email.id);
+        await archiveEmail(tokens, email.id);
         break;
 
       case "archive":
@@ -75,8 +76,9 @@ export async function POST(request) {
         break;
 
       case "unsubscribe":
-        // Mark as read (the actual unsubscribe is handled by /api/emails/unsubscribe)
+        // Mark as read + archive (the actual unsubscribe is handled by /api/emails/unsubscribe)
         await markAsRead(tokens, email.id);
+        await archiveEmail(tokens, email.id);
         break;
 
       case "snooze":
