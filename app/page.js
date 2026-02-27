@@ -1,6 +1,7 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getSnoozeTime, addSnoozedEmail, clearExpiredSnoozes } from '../lib/snooze';
+import { getState as getGamificationState, getLevelInfo, checkAndUpdateStreak, awardXP, calculateXP, addGems, DAILY_GOALS } from '../lib/gamification';
 import SnoozePicker from '../components/SnoozePicker';
 import EmailModal from '../components/EmailModal';
 import UnsubscribeOverlay from '../components/UnsubscribeOverlay';
@@ -12,6 +13,11 @@ import ComposeCard from '../components/ComposeCard';
 import CompletionScreen from '../components/CompletionScreen';
 import LoadingScreen from '../components/LoadingScreen';
 import LoginScreen from '../components/LoginScreen';
+import GamificationBar from '../components/GamificationBar';
+import XPBoostBanner from '../components/XPBoostBanner';
+import ComboCounter from '../components/ComboCounter';
+import CelebrationOverlay from '../components/CelebrationOverlay';
+import StreakDetail from '../components/StreakDetail';
 
 export default function SwipeBox() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
@@ -38,7 +44,7 @@ export default function SwipeBox() {
   const [unsubUrl, setUnsubUrl] = useState(null);
   const [unsubSender, setUnsubSender] = useState("");
   const [showSwipeSettings, setShowSwipeSettings] = useState(false);
-  const [composeState, setComposeState] = useState(null); // { email, mode: "reply"|"forward" }
+  const [composeState, setComposeState] = useState(null);
   const [swipeMappings, setSwipeMappings] = useState(() => getSwipeMappings());
   const [unsubscribedSenders, setUnsubscribedSenders] = useState(() => {
     if (typeof window !== "undefined") {
@@ -48,16 +54,117 @@ export default function SwipeBox() {
   });
   const [fetchError, setFetchError] = useState(null);
 
+  // --- Gamification state ---
+  const [gamState, setGamState] = useState(() => {
+    if (typeof window === "undefined") return { totalXP: 0, dailyXP: 0, weeklyXP: 0, gems: 0, currentStreak: 0, longestStreak: 0, dailyGoal: "regular", dailyGoalMet: false, streakFreezes: 0, streakFrozenDates: [], activeDays: [], dailyEmailCount: 0 };
+    return getGamificationState();
+  });
+  const [comboCount, setComboCount] = useState(0);
+  const [lastXPAwarded, setLastXPAwarded] = useState(0);
+  const [boostEndTime, setBoostEndTime] = useState(null);
+  const [boostActive, setBoostActive] = useState(false);
+  const [celebration, setCelebration] = useState(null);
+  const [showStreakDetail, setShowStreakDetail] = useState(false);
+  const [halfwayTriggered, setHalfwayTriggered] = useState(false);
+  const [initialEmailCount, setInitialEmailCount] = useState(0);
+
+  const lastSwipeTime = useRef(Date.now());
+  const cardShownTime = useRef(Date.now());
+  const comboTimer = useRef(null);
+  const boostTimer = useRef(null);
+
+  // Refresh gamification state from localStorage
+  const refreshGamState = useCallback(() => {
+    setGamState(getGamificationState());
+  }, []);
+
+  // --- Existing effects ---
   useEffect(() => { fetchEmails(); }, []);
-
-  useEffect(() => {
-    try { localStorage.setItem('swipebox_stats', JSON.stringify(stats)); } catch {}
-  }, [stats]);
-
-  useEffect(() => {
-    try { localStorage.setItem('swipebox_history', JSON.stringify(history)); } catch {}
-  }, [history]);
+  useEffect(() => { try { localStorage.setItem('swipebox_stats', JSON.stringify(stats)); } catch {} }, [stats]);
+  useEffect(() => { try { localStorage.setItem('swipebox_history', JSON.stringify(history)); } catch {} }, [history]);
   useEffect(() => { if (lastAction) { setShowToast(true); const t = setTimeout(() => setShowToast(false), 2500); return () => clearTimeout(t); } }, [lastAction]);
+
+  // --- Gamification init ---
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    // Check streak on load
+    const { events } = checkAndUpdateStreak();
+    refreshGamState();
+
+    // Show streak frozen event
+    for (const evt of events) {
+      if (evt.type === "streak_broken") {
+        // Could show a notification
+      }
+    }
+  }, [refreshGamState]);
+
+  // Start 3x boost on first email load
+  useEffect(() => {
+    if (emails.length > 0 && !boostEndTime && initialEmailCount === 0) {
+      const endTime = Date.now() + 10 * 60 * 1000; // 10 minutes
+      setBoostEndTime(endTime);
+      setBoostActive(true);
+      setInitialEmailCount(emails.length);
+      boostTimer.current = setTimeout(() => {
+        setBoostActive(false);
+      }, 10 * 60 * 1000);
+    }
+    return () => { if (boostTimer.current) clearTimeout(boostTimer.current); };
+  }, [emails.length, boostEndTime, initialEmailCount]);
+
+  // Track card shown time for speed bonus
+  useEffect(() => {
+    if (emails.length > 0) {
+      cardShownTime.current = Date.now();
+    }
+  }, [emails.length]);
+
+  // Combo timeout
+  useEffect(() => {
+    if (comboCount > 0) {
+      if (comboTimer.current) clearTimeout(comboTimer.current);
+      comboTimer.current = setTimeout(() => {
+        setComboCount(0);
+      }, 10000); // 10 sec timeout
+    }
+    return () => { if (comboTimer.current) clearTimeout(comboTimer.current); };
+  }, [comboCount]);
+
+  // Check for 50% milestone
+  useEffect(() => {
+    if (halfwayTriggered || initialEmailCount === 0) return;
+    const totalProcessed = stats.sent + stats.read + stats.snoozed + stats.unsubscribed;
+    const halfwayPoint = Math.ceil(initialEmailCount / 2);
+    if (totalProcessed >= halfwayPoint && totalProcessed > 0) {
+      setHalfwayTriggered(true);
+      // Award bonus
+      const result = awardXP(100);
+      addGems(5);
+      refreshGamState();
+      setCelebration({ type: "halfway", xp: 100, gems: 5 });
+    }
+  }, [stats, halfwayTriggered, initialEmailCount, refreshGamState]);
+
+  // Check for inbox zero
+  useEffect(() => {
+    if (emails.length === 0 && initialEmailCount > 0 && !loading) {
+      const currentGam = getGamificationState();
+      addGems(10);
+      refreshGamState();
+      // Delay to not conflict with last swipe animation
+      setTimeout(() => {
+        setCelebration({
+          type: "inbox_zero",
+          stats: {
+            total: initialEmailCount,
+            xp: currentGam.dailyXP,
+            streak: currentGam.currentStreak,
+          },
+        });
+      }, 800);
+    }
+  }, [emails.length, initialEmailCount, loading, refreshGamState]);
 
   // Check for expired snoozes on load
   async function checkExpiredSnoozes() {
@@ -80,9 +187,7 @@ export default function SwipeBox() {
     setLoadingMessage("Fetching your emails...");
     setFetchError(null);
     try {
-      // Check for snoozed emails that need to pop back
       await checkExpiredSnoozes();
-
       const res = await fetch("/api/emails");
       if (res.status === 401) { setIsAuthenticated(false); setLoading(false); return; }
       setIsAuthenticated(true);
@@ -103,14 +208,40 @@ export default function SwipeBox() {
       setFetchError('Unable to connect to Gmail. Please try again.');
       setLoading(false);
     }
+  }
+
+  // --- Gamification XP award helper ---
+  const awardSwipeXP = useCallback((actionType) => {
+    const now = Date.now();
+    const speedMs = now - cardShownTime.current;
+    const newCombo = comboCount + 1;
+    setComboCount(newCombo);
+    lastSwipeTime.current = now;
+
+    const boostMult = boostActive ? 3 : 1;
+    const xpCalc = calculateXP({ actionType, speedMs, comboCount: newCombo, boostMultiplier: boostMult });
+    const result = awardXP(xpCalc.total);
+
+    setLastXPAwarded(xpCalc.total);
+    refreshGamState();
+
+    // Process events (level up, daily goal, streak milestone)
+    for (const evt of result.events) {
+      if (evt.type === "level_up") {
+        setTimeout(() => setCelebration({ type: "level_up", newLevel: evt.newLevel }), 400);
+      } else if (evt.type === "daily_goal_met") {
+        setTimeout(() => setCelebration({ type: "daily_goal_met", streak: evt.streak, gems: evt.gems }), 400);
+      } else if (evt.type === "streak_milestone") {
+        setTimeout(() => setCelebration({ type: "streak_milestone", milestone: evt.milestone, gems: evt.gems }), 400);
+      }
     }
+  }, [comboCount, boostActive, refreshGamState]);
 
   const handleSwipe = useCallback(async (direction, replyText) => {
     if (emails.length === 0 || actionInProgress) return;
     setExpandedEmail(null);
     const current = emails[0];
 
-    // For snooze, show the picker instead of acting immediately
     if (direction === "up") {
       setPendingSnoozeEmail(current);
       setShowSnoozePicker(true);
@@ -132,36 +263,32 @@ export default function SwipeBox() {
     setStats((s) => ({ ...s, [statMap[direction]]: s[statMap[direction]] + 1 }));
     setLastAction({ direction, label: labelMap[direction] });
 
+    // Award XP
+    awardSwipeXP("swipe");
+
     setActionInProgress(true);
     try {
       if (direction === "down") {
-        // Unsubscribe flow
         const unsubRes = await fetch("/api/emails/unsubscribe", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ messageId: current.id, accountEmail: current.account }),
         });
         const unsubData = await unsubRes.json();
-        
-        // Track the sender as unsubscribed
         const newSender = { email: current.email, name: current.from, date: new Date().toISOString() };
         setUnsubscribedSenders(prev => {
           const updated = [...prev.filter(s => s.email !== current.email), newSender];
           if (typeof window !== "undefined") {
             localStorage.setItem("swipebox_unsubscribed", JSON.stringify(updated));
-            // Also set cookie for server-side access
             document.cookie = "swipebox_unsubscribed=" + btoa(JSON.stringify(updated)) + ";path=/;max-age=31536000";
           }
           return updated;
         });
-        
         if (unsubData.method === "link" && unsubData.unsubscribeUrl) {
-          // Open overlay for manual unsubscribe
           setUnsubUrl(unsubData.unsubscribeUrl);
           setUnsubSender(current.from);
           setShowUnsubOverlay(true);
         }
-        // If one-click succeeded or no unsub found, the toast already shows
       } else {
         await fetch("/api/emails/action", {
           method: "POST",
@@ -175,7 +302,7 @@ export default function SwipeBox() {
       }
     } catch (err) { console.error("Action failed:", err); }
     setActionInProgress(false);
-  }, [emails, actionInProgress]);
+  }, [emails, actionInProgress, awardSwipeXP]);
 
   const handleSnoozeSelect = useCallback(async (option) => {
     const email = pendingSnoozeEmail || emails[0];
@@ -193,6 +320,9 @@ export default function SwipeBox() {
     setStats((s) => ({ ...s, snoozed: s.snoozed + 1 }));
     setLastAction({ direction: "up", label: `Snoozed: ${option.label}` });
 
+    // Award XP for snooze
+    awardSwipeXP("swipe");
+
     setActionInProgress(true);
     try {
       await fetch("/api/emails/action", {
@@ -202,7 +332,7 @@ export default function SwipeBox() {
       });
     } catch (err) { console.error("Snooze failed:", err); }
     setActionInProgress(false);
-  }, [pendingSnoozeEmail, emails]);
+  }, [pendingSnoozeEmail, emails, awardSwipeXP]);
 
   const handleForward = useCallback(async (toEmail) => {
     if (!expandedEmail || !toEmail) return;
@@ -240,11 +370,14 @@ export default function SwipeBox() {
 
   const actionColors = { right: "#10B981", left: "#D97706", up: "#4F46E5", down: "#7C3AED" };
 
+  // Gamification derived values
+  const levelInfo = getLevelInfo(gamState.totalXP);
+  const goalConfig = DAILY_GOALS[gamState.dailyGoal] || DAILY_GOALS.regular;
+
   if (isAuthenticated === null || (isAuthenticated && loading)) {
     return <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#FFFFFF" }}><LoadingScreen message={loadingMessage} /></div>;
   }
   if (isAuthenticated === false) return <LoginScreen />;
-
 
   if (fetchError) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '2rem', textAlign: 'center', background: '#FFFFFF', color: '#1A1A2E' }}>
@@ -259,6 +392,7 @@ export default function SwipeBox() {
       </button>
     </div>
   );
+
   const totalProcessed = stats.sent + stats.read + stats.snoozed + stats.unsubscribed;
   const totalEmails = totalProcessed + emails.length;
   const progressPercent = totalEmails > 0 ? (totalProcessed / totalEmails) * 100 : 0;
@@ -279,6 +413,20 @@ export default function SwipeBox() {
           <button onClick={() => setShowSettings(true)} title="Settings" style={{ width: "32px", height: "32px", borderRadius: "50%", border: "1.5px solid rgba(0,0,0,0.08)", background: "#F5F5F7", display: "flex", alignItems: "center", justifyContent: "center", color: "#6B7280", fontSize: "16px", cursor: "pointer", lineHeight: 1 }}>{"\u2699"}</button>
         </div>
       </div>
+
+      {/* Gamification Bar */}
+      <GamificationBar
+        streak={gamState.currentStreak}
+        level={levelInfo.level}
+        gems={gamState.gems}
+        xpProgress={levelInfo.progress}
+        dailyXP={gamState.dailyXP}
+        dailyGoalXP={goalConfig.xp}
+        onStreakTap={() => setShowStreakDetail(true)}
+      />
+
+      {/* XP Boost Banner */}
+      <XPBoostBanner active={boostActive} multiplier={3} endTime={boostEndTime} />
 
       {/* Enhanced Progress Bar */}
       {totalEmails > 0 && (
@@ -326,6 +474,9 @@ export default function SwipeBox() {
                 const isTop = i === Math.min(emails.length, 2) - 1;
                 return <EmailCard key={email.id} email={email} isTop={isTop} onSwipe={handleSwipe} onTap={(e) => setExpandedEmail(e)} style={{ top: isTop ? "0px" : "8px" }} />;
               })}
+
+              {/* Combo Counter */}
+              <ComboCounter combo={comboCount} lastXP={lastXPAwarded} />
             </div>
 
             {/* Swipe Hints + Customize (bottom) */}
@@ -386,6 +537,7 @@ export default function SwipeBox() {
                   body: JSON.stringify({ action: "send", email: em, replyText }),
                 });
                 setLastAction({ direction: "right", label: `Reply sent to ${em.from}` });
+                awardSwipeXP("reply");
               } else {
                 await fetch("/api/emails/action", {
                   method: "POST",
@@ -393,6 +545,7 @@ export default function SwipeBox() {
                   body: JSON.stringify({ action: "forward", email: em, forwardTo: fwdTo }),
                 });
                 setLastAction({ direction: "right", label: `Forwarded to ${fwdTo}` });
+                awardSwipeXP("forward");
               }
             } catch (err) { console.error("Send failed:", err); }
           }}
@@ -431,6 +584,23 @@ export default function SwipeBox() {
           mappings={swipeMappings}
           onSave={(newMappings) => setSwipeMappings(newMappings)}
           onClose={() => setShowSwipeSettings(false)}
+        />
+      )}
+
+      {/* Streak Detail */}
+      {showStreakDetail && (
+        <StreakDetail
+          state={gamState}
+          onClose={() => setShowStreakDetail(false)}
+          onUpdate={() => { refreshGamState(); }}
+        />
+      )}
+
+      {/* Celebration Overlay */}
+      {celebration && (
+        <CelebrationOverlay
+          celebration={celebration}
+          onDismiss={() => { setCelebration(null); refreshGamState(); }}
         />
       )}
 
