@@ -1,0 +1,210 @@
+'use client';
+import { useState } from 'react';
+
+const AVAILABLE_ACTIONS = [
+  { id: 'mark_read', label: 'Mark Read', icon: '📖', color: '#D97706' },
+  { id: 'snooze', label: 'Snooze', icon: '⏰', color: '#4F46E5' },
+  { id: 'unsubscribe', label: 'Unsubscribe', icon: '🚫', color: '#7C3AED' },
+  { id: 'done', label: 'Done / Send', icon: '✅', color: '#10B981' },
+  { id: 'archive', label: 'Archive', icon: '📦', color: '#6B7280' },
+  { id: 'delete', label: 'Delete', icon: '🗑️', color: '#EF4444' },
+  { id: 'star', label: 'Star', icon: '⭐', color: '#F59E0B' },
+];
+
+const DIRECTION_META = {
+  left: { label: 'Swipe Left', arrow: '←' },
+  right: { label: 'Swipe Right', arrow: '→' },
+  up: { label: 'Swipe Up', arrow: '↑' },
+  down: { label: 'Swipe Down', arrow: '↓' },
+};
+
+const DEFAULT_MAPPINGS = {
+  left: 'mark_read',
+  right: 'done',
+  up: 'snooze',
+  down: 'unsubscribe',
+};
+
+function getSwipeMappings() {
+  if (typeof window === 'undefined') return DEFAULT_MAPPINGS;
+  try {
+    const saved = localStorage.getItem('swipebox_swipe_mappings');
+    if (saved) return { ...DEFAULT_MAPPINGS, ...JSON.parse(saved) };
+  } catch {}
+  return DEFAULT_MAPPINGS;
+}
+
+function saveSwipeMappings(mappings) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('swipebox_swipe_mappings', JSON.stringify(mappings));
+  }
+}
+
+function SwipeSettingsModal({ mappings, onSave, onClose }) {
+  const [draft, setDraft] = useState({ ...mappings });
+  const [expandedDir, setExpandedDir] = useState(null);
+
+  const handleSelect = (direction, actionId) => {
+    setDraft(prev => ({ ...prev, [direction]: actionId }));
+    setExpandedDir(null);
+  };
+
+  const handleSave = () => {
+    saveSwipeMappings(draft);
+    onSave(draft);
+    onClose();
+  };
+
+  const handleReset = () => {
+    setDraft({ ...DEFAULT_MAPPINGS });
+  };
+
+  const getAction = (actionId) => AVAILABLE_ACTIONS.find(a => a.id === actionId) || AVAILABLE_ACTIONS[0];
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 200,
+      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+    }}>
+      {/* Backdrop */}
+      <div onClick={onClose} style={{
+        position: 'absolute', inset: 0,
+        background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)',
+      }} />
+
+      {/* Sheet */}
+      <div style={{
+        position: 'relative', width: '100%', maxWidth: '500px',
+        background: '#FFFFFF', borderRadius: '24px 24px 0 0',
+        boxShadow: '0 -8px 40px rgba(0,0,0,0.12)',
+        padding: '0 0 env(safe-area-inset-bottom, 20px)',
+        animation: 'slideUp 0.3s ease',
+        maxHeight: '85vh', overflowY: 'auto',
+      }}>
+        {/* Drag handle */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 8px' }}>
+          <div style={{ width: '36px', height: '4px', borderRadius: '2px', background: 'rgba(0,0,0,0.12)' }} />
+        </div>
+
+        {/* Header */}
+        <div style={{ padding: '8px 24px 20px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#1A1A2E', margin: 0, letterSpacing: '-0.3px' }}>
+            Customize Swipe Actions
+          </h2>
+          <p style={{ fontSize: '13px', color: '#9CA3AF', margin: '6px 0 0', lineHeight: 1.5 }}>
+            Choose what happens when you swipe in each direction
+          </p>
+        </div>
+
+        {/* Direction mappings */}
+        <div style={{ padding: '16px 24px' }}>
+          {['left', 'right', 'up', 'down'].map((dir) => {
+            const meta = DIRECTION_META[dir];
+            const currentAction = getAction(draft[dir]);
+            const isExpanded = expandedDir === dir;
+
+            return (
+              <div key={dir} style={{ marginBottom: '12px' }}>
+                {/* Direction row */}
+                <button
+                  onClick={() => setExpandedDir(isExpanded ? null : dir)}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '14px 16px', borderRadius: '16px',
+                    background: isExpanded ? 'rgba(79,70,229,0.04)' : '#F5F5F7',
+                    border: isExpanded ? '1.5px solid rgba(79,70,229,0.15)' : '1px solid rgba(0,0,0,0.04)',
+                    cursor: 'pointer', transition: 'all 0.2s ease',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                      width: '36px', height: '36px', borderRadius: '10px',
+                      background: `${currentAction.color}10`,
+                      border: `1px solid ${currentAction.color}20`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '16px', fontWeight: 700, color: currentAction.color,
+                    }}>
+                      {meta.arrow}
+                    </div>
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#1A1A2E' }}>{meta.label}</div>
+                      <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>
+                        {currentAction.icon} {currentAction.label}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{
+                    fontSize: '14px', color: '#9CA3AF',
+                    transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                  }}>▾</div>
+                </button>
+
+                {/* Action options dropdown */}
+                {isExpanded && (
+                  <div style={{
+                    marginTop: '6px', padding: '8px',
+                    background: '#FAFAFA', borderRadius: '14px',
+                    border: '1px solid rgba(0,0,0,0.04)',
+                  }}>
+                    {AVAILABLE_ACTIONS.map((action) => {
+                      const isSelected = draft[dir] === action.id;
+                      return (
+                        <button
+                          key={action.id}
+                          onClick={() => handleSelect(dir, action.id)}
+                          style={{
+                            width: '100%', display: 'flex', alignItems: 'center', gap: '12px',
+                            padding: '10px 12px', borderRadius: '10px',
+                            background: isSelected ? `${action.color}08` : 'transparent',
+                            border: isSelected ? `1px solid ${action.color}20` : '1px solid transparent',
+                            cursor: 'pointer', transition: 'all 0.15s ease',
+                            marginBottom: '2px',
+                          }}
+                        >
+                          <span style={{ fontSize: '18px', width: '24px', textAlign: 'center' }}>{action.icon}</span>
+                          <span style={{
+                            fontSize: '14px', fontWeight: isSelected ? 700 : 500,
+                            color: isSelected ? action.color : '#374151',
+                          }}>{action.label}</span>
+                          {isSelected && (
+                            <span style={{ marginLeft: 'auto', fontSize: '14px', color: action.color }}>✓</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer buttons */}
+        <div style={{
+          padding: '12px 24px 24px', display: 'flex', gap: '10px',
+          borderTop: '1px solid rgba(0,0,0,0.06)',
+        }}>
+          <button onClick={handleReset} style={{
+            flex: 1, padding: '14px', borderRadius: '14px',
+            background: '#F5F5F7', border: '1px solid rgba(0,0,0,0.06)',
+            color: '#6B7280', fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+          }}>
+            Reset Defaults
+          </button>
+          <button onClick={handleSave} style={{
+            flex: 2, padding: '14px', borderRadius: '14px',
+            background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
+            border: 'none', color: '#fff', fontSize: '14px', fontWeight: 700,
+            cursor: 'pointer', boxShadow: '0 4px 12px rgba(79,70,229,0.3)',
+          }}>
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export { AVAILABLE_ACTIONS, DEFAULT_MAPPINGS, getSwipeMappings, saveSwipeMappings };
+export default SwipeSettingsModal;

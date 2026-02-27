@@ -7,6 +7,7 @@ import UnsubscribeOverlay from '../components/UnsubscribeOverlay';
 import SettingsModal from '../components/SettingsModal';
 import EmailCard from '../components/EmailCard';
 import ActionButton from '../components/ActionButton';
+import SwipeSettingsModal, { AVAILABLE_ACTIONS, getSwipeMappings } from '../components/SwipeSettingsModal';
 import CompletionScreen from '../components/CompletionScreen';
 import LoadingScreen from '../components/LoadingScreen';
 import LoginScreen from '../components/LoginScreen';
@@ -35,6 +36,8 @@ export default function SwipeBox() {
   const [showUnsubOverlay, setShowUnsubOverlay] = useState(false);
   const [unsubUrl, setUnsubUrl] = useState(null);
   const [unsubSender, setUnsubSender] = useState("");
+  const [showSwipeSettings, setShowSwipeSettings] = useState(false);
+  const [swipeMappings, setSwipeMappings] = useState(() => getSwipeMappings());
   const [unsubscribedSenders, setUnsubscribedSenders] = useState(() => {
     if (typeof window !== "undefined") {
       try { return JSON.parse(localStorage.getItem("swipebox_unsubscribed") || "[]"); } catch { return []; }
@@ -316,16 +319,34 @@ export default function SwipeBox() {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative", overflow: "hidden" }}>
         {emails.length > 0 ? (
           <>
-            <div style={{ display: "flex", justifyContent: "center", gap: "24px", padding: "14px 20px 8px", fontSize: "11px", color: "#9CA3AF", fontWeight: 600, letterSpacing: "0.5px", textTransform: "uppercase" }}>
-              <span>{"\u2190"} Mark Read</span><span>{"\u2191"} Snooze</span><span>{"\u2193"} Unsub</span><span>{emails[0]?.aiReply ? "Send" : "Done"} {"\u2192"}</span>
-            </div>
             <div style={{ flex: 1, width: "100%", maxWidth: "500px", position: "relative", padding: "0 20px", display: "flex", alignItems: "center", justifyContent: "center" }}>
               {emails.slice(0, 2).reverse().map((email, i) => {
                 const isTop = i === Math.min(emails.length, 2) - 1;
                 return <EmailCard key={email.id} email={email} isTop={isTop} onSwipe={handleSwipe} onTap={(e) => setExpandedEmail(e)} style={{ top: isTop ? "0px" : "8px" }} />;
               })}
             </div>
-            
+
+            {/* Swipe Hints + Customize (bottom) */}
+            <div style={{ width: "100%", padding: "12px 20px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+              <div style={{ display: "flex", justifyContent: "center", gap: "20px", fontSize: "11px", color: "#9CA3AF", fontWeight: 600, letterSpacing: "0.5px", textTransform: "uppercase" }}>
+                <span>{"\u2190"} {(AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.left) || {}).label || "Mark Read"}</span>
+                <span>{"\u2191"} {(AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.up) || {}).label || "Snooze"}</span>
+                <span>{"\u2193"} {(AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.down) || {}).label || "Unsub"}</span>
+                <span>{(AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.right) || {}).label || "Done"} {"\u2192"}</span>
+              </div>
+              <button
+                onClick={() => setShowSwipeSettings(true)}
+                style={{
+                  display: "flex", alignItems: "center", gap: "6px",
+                  padding: "6px 14px", borderRadius: "20px",
+                  background: "rgba(79,70,229,0.06)", border: "1px solid rgba(79,70,229,0.1)",
+                  color: "#4F46E5", fontSize: "11px", fontWeight: 600,
+                  cursor: "pointer", letterSpacing: "0.3px",
+                }}
+              >
+                <span style={{ fontSize: "13px" }}>{"\u2699"}</span> Customize
+              </button>
+            </div>
           </>
         ) : (
           <CompletionScreen stats={stats} onRefresh={fetchEmails} />
@@ -368,6 +389,15 @@ export default function SwipeBox() {
           accounts={accounts}
           onClose={() => setShowSettings(false)}
           onRemoveAccount={handleRemoveAccount}
+        />
+      )}
+
+      {/* Swipe Settings Modal */}
+      {showSwipeSettings && (
+        <SwipeSettingsModal
+          mappings={swipeMappings}
+          onSave={(newMappings) => setSwipeMappings(newMappings)}
+          onClose={() => setShowSwipeSettings(false)}
         />
       )}
 
