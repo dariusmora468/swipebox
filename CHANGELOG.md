@@ -4,6 +4,20 @@ All notable changes to SwipeBox are documented here. Most recent changes at top.
 
 ---
 
+## [0.5.0] - 2026-02-27
+
+### Added
+- Structured JSON logging utility (`lib/logger.js`) with `logError`, `logWarn`, `logInfo`, and `logRequest` helpers
+- Stack traces included in development mode only for easier debugging
+- Contextual log tags (e.g. `api:emails`, `gmail:fetchAllAccountEmails`) for filtering
+
+### Fixed
+- Silent catch blocks in `lib/gmail.js`, `lib/snooze.js`, and `app/api/emails/route.js` now log warnings instead of swallowing errors
+- Replaced all bare `console.error` calls across 8 server files with structured logger
+- Corrected relative import paths for nested API routes that caused build failure
+
+---
+
 ## [0.4.0] - 2026-02-27
 
 ### Added
@@ -17,7 +31,7 @@ All notable changes to SwipeBox are documented here. Most recent changes at top.
 
 ## [e15862f] - 2026-02-27
 ### Fix: Implement fetchAllAccountEmails and proper error handling
-- **Root cause identified:** `fetchAllAccountEmails` was imported by the email API route but never implemented in `gmail.js`. The import resolved to `undefined`, causing a TypeError on every call, which was silently caught and returned as an empty array â making the app show "Inbox Zero" instead of an error.
+- **Root cause identified:** `fetchAllAccountEmails` was imported by the email API route but never implemented in `gmail.js`. The import resolved to `undefined`, causing a TypeError on every call, which was silently caught and returned as an empty array Ã¢ÂÂ making the app show "Inbox Zero" instead of an error.
 - **Files modified:**
   - `lib/gmail.js` - Added `fetchAllAccountEmails()` function that fetches emails from Gmail API for all connected accounts using `gmail.users.messages.list` and `gmail.users.messages.get`, with proper auth error propagation
   - `app/api/emails/route.js` - Updated catch block to detect auth errors via `isAuthError` flag, `error.code === 401`, or `invalid_grant` message
