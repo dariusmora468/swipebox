@@ -4,9 +4,20 @@ All notable changes to SwipeBox are documented here. Most recent changes at top.
 
 ---
 
+## [0.4.0] - 2026-02-27
+
+### Added
+- Persist action counts (sent, read, snoozed, unsubscribed) to localStorage
+- Persist undo history to localStorage
+- Stats and history now survive page refreshes
+- Lazy state initialization from localStorage for both stats and history
+
+### Fixed
+- Variable name mismatch in email route catch block (e -> err)
+
 ## [e15862f] - 2026-02-27
 ### Fix: Implement fetchAllAccountEmails and proper error handling
-- **Root cause identified:** `fetchAllAccountEmails` was imported by the email API route but never implemented in `gmail.js`. The import resolved to `undefined`, causing a TypeError on every call, which was silently caught and returned as an empty array — making the app show "Inbox Zero" instead of an error.
+- **Root cause identified:** `fetchAllAccountEmails` was imported by the email API route but never implemented in `gmail.js`. The import resolved to `undefined`, causing a TypeError on every call, which was silently caught and returned as an empty array â making the app show "Inbox Zero" instead of an error.
 - **Files modified:**
   - `lib/gmail.js` - Added `fetchAllAccountEmails()` function that fetches emails from Gmail API for all connected accounts using `gmail.users.messages.list` and `gmail.users.messages.get`, with proper auth error propagation
   - `app/api/emails/route.js` - Updated catch block to detect auth errors via `isAuthError` flag, `error.code === 401`, or `invalid_grant` message
