@@ -128,6 +128,20 @@ export default function SwipeBox() {
     return swipeMappings[direction] || "mark_read";
   }, [swipeMappings]);
 
+  // Helper: call action API and verify it succeeded. Throws on failure.
+  const callAction = async (actionName, email, extra = {}) => {
+    const res = await fetch("/api/emails/action", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: actionName, email, ...extra }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.details || data.error || `Action ${actionName} failed (${res.status})`);
+    }
+    return res;
+  };
+
   const handleSwipe = useCallback(async (direction, replyText) => {
     if (emails.length === 0 || actionInProgress) return;
     setExpandedEmail(null);
@@ -144,18 +158,17 @@ export default function SwipeBox() {
     // === REPLY / SEND (done): either auto-send AI draft or open compose ===
     if (action === "done") {
       if (current.aiReply) {
-        setEmails((e) => e.slice(1));
-        setHistory((h) => [...h, { email: current, direction }]);
-        setStats((s) => ({ ...s, sent: s.sent + 1 }));
-        setLastAction({ direction, label: `Reply sent to ${current.from}` });
         setActionInProgress(true);
         try {
-          await fetch("/api/emails/action", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "send", email: current, replyText: current.aiReply }),
-          });
-        } catch (err) { console.error("Reply failed:", err); }
+          await callAction("send", current, { replyText: current.aiReply });
+          setEmails((e) => e.slice(1));
+          setHistory((h) => [...h, { email: current, direction }]);
+          setStats((s) => ({ ...s, sent: s.sent + 1 }));
+          setLastAction({ direction, label: `Reply sent to ${current.from}` });
+        } catch (err) {
+          console.error("Reply failed:", err);
+          setLastAction({ direction, label: `Failed — ${current.from}` });
+        }
         setActionInProgress(false);
       } else {
         setComposeState({ email: current, mode: "reply" });
@@ -165,87 +178,83 @@ export default function SwipeBox() {
 
     // === MARK READ ===
     if (action === "mark_read") {
-      setEmails((e) => e.slice(1));
-      setHistory((h) => [...h, { email: current, direction }]);
-      setStats((s) => ({ ...s, read: s.read + 1 }));
-      setLastAction({ direction, label: `Marked read: ${current.from}` });
       setActionInProgress(true);
       try {
-        await fetch("/api/emails/action", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "mark_read", email: current }),
-        });
-      } catch (err) { console.error("Mark read failed:", err); }
+        await callAction("mark_read", current);
+        setEmails((e) => e.slice(1));
+        setHistory((h) => [...h, { email: current, direction }]);
+        setStats((s) => ({ ...s, read: s.read + 1 }));
+        setLastAction({ direction, label: `Marked read: ${current.from}` });
+      } catch (err) {
+        console.error("Mark read failed:", err);
+        setLastAction({ direction, label: `Failed — ${current.from}` });
+      }
       setActionInProgress(false);
       return;
     }
 
     // === ARCHIVE ===
     if (action === "archive") {
-      setEmails((e) => e.slice(1));
-      setHistory((h) => [...h, { email: current, direction }]);
-      setStats((s) => ({ ...s, read: s.read + 1 }));
-      setLastAction({ direction, label: `Archived: ${current.from}` });
       setActionInProgress(true);
       try {
-        await fetch("/api/emails/action", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "archive", email: current }),
-        });
-      } catch (err) { console.error("Archive failed:", err); }
+        await callAction("archive", current);
+        setEmails((e) => e.slice(1));
+        setHistory((h) => [...h, { email: current, direction }]);
+        setStats((s) => ({ ...s, read: s.read + 1 }));
+        setLastAction({ direction, label: `Archived: ${current.from}` });
+      } catch (err) {
+        console.error("Archive failed:", err);
+        setLastAction({ direction, label: `Failed — ${current.from}` });
+      }
       setActionInProgress(false);
       return;
     }
 
     // === DELETE (unsub + delete combo) ===
     if (action === "delete") {
-      setEmails((e) => e.slice(1));
-      setHistory((h) => [...h, { email: current, direction }]);
-      setStats((s) => ({ ...s, unsubscribed: s.unsubscribed + 1 }));
-      setLastAction({ direction, label: `Unsub + deleted: ${current.from}` });
       setActionInProgress(true);
       try {
         // Step 1: Try to unsubscribe (auto one-click or get link)
-        const unsubRes = await fetch("/api/emails/unsubscribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messageId: current.id, accountEmail: current.account }),
-        });
-        const unsubData = await unsubRes.json();
-        const newSender = { email: current.email, name: current.from, date: new Date().toISOString() };
-        setUnsubscribedSenders(prev => {
-          const updated = [...prev.filter(s => s.email !== current.email), newSender];
-          if (typeof window !== "undefined") {
-            localStorage.setItem("swipebox_unsubscribed", JSON.stringify(updated));
-            document.cookie = "swipebox_unsubscribed=" + btoa(JSON.stringify(updated)) + ";path=/;max-age=31536000";
+        try {
+          const unsubRes = await fetch("/api/emails/unsubscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messageId: current.id, accountEmail: current.account }),
+          });
+          if (unsubRes.ok) {
+            const unsubData = await unsubRes.json();
+            const newSender = { email: current.email, name: current.from, date: new Date().toISOString() };
+            setUnsubscribedSenders(prev => {
+              const updated = [...prev.filter(s => s.email !== current.email), newSender];
+              if (typeof window !== "undefined") {
+                localStorage.setItem("swipebox_unsubscribed", JSON.stringify(updated));
+                document.cookie = "swipebox_unsubscribed=" + btoa(JSON.stringify(updated)) + ";path=/;max-age=31536000";
+              }
+              return updated;
+            });
+            if (unsubData.method === "link" && unsubData.unsubscribeUrl) {
+              setUnsubUrl(unsubData.unsubscribeUrl);
+              setUnsubSender(current.from);
+              setShowUnsubOverlay(true);
+            }
           }
-          return updated;
-        });
-        // If one-click worked, great. If link-only, show the overlay so user can confirm.
-        if (unsubData.method === "link" && unsubData.unsubscribeUrl) {
-          setUnsubUrl(unsubData.unsubscribeUrl);
-          setUnsubSender(current.from);
-          setShowUnsubOverlay(true);
-        }
-        // Step 2: Always trash the email
-        await fetch("/api/emails/action", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "delete", email: current }),
-        });
-      } catch (err) { console.error("Unsub+delete failed:", err); }
+        } catch (unsubErr) { console.error("Unsub step failed (continuing to delete):", unsubErr); }
+        // Step 2: Always trash the email — this is the critical part
+        await callAction("delete", current);
+        setEmails((e) => e.slice(1));
+        setHistory((h) => [...h, { email: current, direction }]);
+        setStats((s) => ({ ...s, unsubscribed: s.unsubscribed + 1 }));
+        setLastAction({ direction, label: `Unsub + deleted: ${current.from}` });
+      } catch (err) {
+        console.error("Delete failed:", err);
+        setLastAction({ direction, label: `Failed — ${current.from}` });
+      }
       setActionInProgress(false);
       return;
     }
 
     // === UNSUBSCRIBE (standalone — kept for custom mappings) ===
     if (action === "unsubscribe") {
-      setEmails((e) => e.slice(1));
-      setHistory((h) => [...h, { email: current, direction }]);
-      setStats((s) => ({ ...s, unsubscribed: s.unsubscribed + 1 }));
-      setLastAction({ direction, label: `Unsubscribed: ${current.from}` });
       setActionInProgress(true);
       try {
         const unsubRes = await fetch("/api/emails/unsubscribe", {
@@ -253,46 +262,50 @@ export default function SwipeBox() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ messageId: current.id, accountEmail: current.account }),
         });
-        const unsubData = await unsubRes.json();
-        const newSender = { email: current.email, name: current.from, date: new Date().toISOString() };
-        setUnsubscribedSenders(prev => {
-          const updated = [...prev.filter(s => s.email !== current.email), newSender];
-          if (typeof window !== "undefined") {
-            localStorage.setItem("swipebox_unsubscribed", JSON.stringify(updated));
-            document.cookie = "swipebox_unsubscribed=" + btoa(JSON.stringify(updated)) + ";path=/;max-age=31536000";
+        if (unsubRes.ok) {
+          const unsubData = await unsubRes.json();
+          const newSender = { email: current.email, name: current.from, date: new Date().toISOString() };
+          setUnsubscribedSenders(prev => {
+            const updated = [...prev.filter(s => s.email !== current.email), newSender];
+            if (typeof window !== "undefined") {
+              localStorage.setItem("swipebox_unsubscribed", JSON.stringify(updated));
+              document.cookie = "swipebox_unsubscribed=" + btoa(JSON.stringify(updated)) + ";path=/;max-age=31536000";
+            }
+            return updated;
+          });
+          if (unsubData.method === "link" && unsubData.unsubscribeUrl) {
+            setUnsubUrl(unsubData.unsubscribeUrl);
+            setUnsubSender(current.from);
+            setShowUnsubOverlay(true);
           }
-          return updated;
-        });
-        if (unsubData.method === "link" && unsubData.unsubscribeUrl) {
-          setUnsubUrl(unsubData.unsubscribeUrl);
-          setUnsubSender(current.from);
-          setShowUnsubOverlay(true);
         }
         // Archive after unsubscribe
-        await fetch("/api/emails/action", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "unsubscribe", email: current }),
-        });
-      } catch (err) { console.error("Unsubscribe failed:", err); }
+        await callAction("unsubscribe", current);
+        setEmails((e) => e.slice(1));
+        setHistory((h) => [...h, { email: current, direction }]);
+        setStats((s) => ({ ...s, unsubscribed: s.unsubscribed + 1 }));
+        setLastAction({ direction, label: `Unsubscribed: ${current.from}` });
+      } catch (err) {
+        console.error("Unsubscribe failed:", err);
+        setLastAction({ direction, label: `Failed — ${current.from}` });
+      }
       setActionInProgress(false);
       return;
     }
 
     // === STAR (future) ===
     if (action === "star") {
-      setEmails((e) => e.slice(1));
-      setHistory((h) => [...h, { email: current, direction }]);
-      setStats((s) => ({ ...s, read: s.read + 1 }));
-      setLastAction({ direction, label: `Starred: ${current.from}` });
       setActionInProgress(true);
       try {
-        await fetch("/api/emails/action", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "star", email: current }),
-        });
-      } catch (err) { console.error("Star failed:", err); }
+        await callAction("star", current);
+        setEmails((e) => e.slice(1));
+        setHistory((h) => [...h, { email: current, direction }]);
+        setStats((s) => ({ ...s, read: s.read + 1 }));
+        setLastAction({ direction, label: `Starred: ${current.from}` });
+      } catch (err) {
+        console.error("Star failed:", err);
+        setLastAction({ direction, label: `Failed — ${current.from}` });
+      }
       setActionInProgress(false);
       return;
     }

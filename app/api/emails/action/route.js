@@ -41,11 +41,12 @@ export async function POST(request) {
       });
     }
 
-    // Route to the correct account
-    const tokens = getAccountTokens(accounts, email.account);
+    // Route to the correct account (email.account is the primary field; email.accountEmail is legacy fallback)
+    const accountEmail = email.account || email.accountEmail;
+    const tokens = getAccountTokens(accounts, accountEmail);
     if (!tokens) {
       return NextResponse.json(
-        { error: "account_not_found", details: `No tokens for ${email.account}` },
+        { error: "account_not_found", details: `No tokens for ${accountEmail}` },
         { status: 400 }
       );
     }

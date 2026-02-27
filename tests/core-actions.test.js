@@ -220,6 +220,34 @@ if (settingsModal.includes('MAPPINGS_VERSION') && settingsModal.includes('swipeb
 }
 
 // ============================================================
+// TEST 4b: Account field integrity
+// ============================================================
+section('4b. Account Field Integrity');
+
+// fetchAllAccountEmails must pass accountEmail to parseEmail
+if (gmailLib.includes('parseEmail(fullMsg.data, account.email)')) {
+  pass('fetchAllAccountEmails passes account.email to parseEmail');
+} else if (gmailLib.includes('parseEmail(fullMsg.data)')) {
+  fail('fetchAllAccountEmails does NOT pass account.email — email.account will be undefined, ALL actions will fail silently!');
+} else {
+  warn('Could not verify parseEmail call pattern — check manually');
+}
+
+// Action route must have fallback for email.accountEmail
+if (actionRoute.includes('email.account || email.accountEmail') || actionRoute.includes('email.accountEmail || email.account')) {
+  pass('Action route has fallback for legacy accountEmail field');
+} else if (actionRoute.includes('email.account')) {
+  warn('Action route only checks email.account — no fallback for legacy accountEmail');
+}
+
+// handleSwipe must check API response (not just catch network errors)
+if (pageJs.includes('!res.ok') || pageJs.includes('res.ok')) {
+  pass('handleSwipe checks API response status (not just network errors)');
+} else {
+  fail('handleSwipe does NOT check API response — failed actions are silently swallowed!');
+}
+
+// ============================================================
 // TEST 5: Gmail Helper Functions
 // ============================================================
 section('5. Gmail Helper Functions');
