@@ -30,6 +30,7 @@ export default function SwipeBox() {
   const [unsubUrl, setUnsubUrl] = useState(null);
   const [unsubSender, setUnsubSender] = useState("");
   const [unsubscribedSenders, setUnsubscribedSenders] = useState(() => {
+  const [fetchError, setFetchError] = useState(null);
     if (typeof window !== "undefined") {
       try { return JSON.parse(localStorage.getItem("swipebox_unsubscribed") || "[]"); } catch { return []; }
     }
@@ -58,6 +59,7 @@ export default function SwipeBox() {
   async function fetchEmails() {
     setLoading(true);
     setLoadingMessage("Fetching your emails...");
+    setFetchError(null);
     try {
       // Check for snoozed emails that need to pop back
       await checkExpiredSnoozes();
@@ -65,6 +67,12 @@ export default function SwipeBox() {
       const res = await fetch("/api/emails");
       if (res.status === 401) { setIsAuthenticated(false); setLoading(false); return; }
       setIsAuthenticated(true);
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        setFetchError(errData.error || 'Failed to load emails. Please try again.');
+        setLoading(false);
+        return;
+      }
       setLoadingMessage("AI is analyzing your emails...");
       const data = await res.json();
       setEmails(data.emails || []);
@@ -72,6 +80,7 @@ export default function SwipeBox() {
       setHistory([]);
       setStats({ sent: 0, read: 0, snoozed: 0, unsubscribed: 0 });
     } catch (err) { console.error("Error:", err); setIsAuthenticated(false); }
+      setFetchError('Unable to connect to Gmail. Please try again.');
     setLoading(false);
   }
 
@@ -215,6 +224,20 @@ export default function SwipeBox() {
   }
   if (isAuthenticated === false) return <LoginScreen />;
 
+
+  if (fetchError) return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '2rem', textAlign: 'center', background: '#0a0a0a', color: '#fff' }}>
+      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
+      <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Connection Error</h2>
+      <p style={{ color: '#999', marginBottom: '1.5rem', maxWidth: '300px' }}>{fetchError}</p>
+      <button onClick={() => { setFetchError(null); fetchEmails(); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: '#fff', color: '#000', border: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}>
+        Try Again
+      </button>
+      <button onClick={() => { setFetchError(null); setAuthenticated(false); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: 'transparent', color: '#999', border: '1px solid #333', fontWeight: 500, cursor: 'pointer', fontSize: '0.875rem', marginTop: '0.75rem' }}>
+        Reconnect Gmail
+      </button>
+    </div>
+  );
   const totalProcessed = stats.sent + stats.read + stats.snoozed + stats.unsubscribed;
   const totalEmails = totalProcessed + emails.length;
   const progressPercent = totalEmails > 0 ? (totalProcessed / totalEmails) * 100 : 0;

@@ -56,7 +56,7 @@ export async function GET(request) {
     });
   } catch (err) {
     console.error("Fetch emails error:", err);
-    if (err.message?.includes("invalid_grant")) {
+    if (e.isAuthError || e.code === 401 || e.message?.includes('invalid_grant')) {
       return NextResponse.json({ error: "token_expired" }, { status: 401 });
     }
     return NextResponse.json(
