@@ -77,10 +77,10 @@ function EmailCard({ email, isTop, onSwipe, onTap, style }) {
       <div style={{
         background: isTop ? "#FFFFFF" : "#F8F8FA",
         borderRadius: "24px", border: `1px solid ${isTop ? "rgba(0,0,0,0.08)" : "rgba(0,0,0,0.04)"}`,
-        boxShadow: isTop ? "0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)" : "0 4px 16px rgba(0,0,0,0.04)" : "0 10px 30px rgba(0,0,0,0.2)",
+        boxShadow: isTop ? "0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)" : "0 4px 16px rgba(0,0,0,0.04)",
         backdropFilter: "blur(40px)", overflow: "hidden", position: "relative",
       }}>
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3px", borderRadius: "24px 24px 0 0", background: `linear-gradient(90deg, transparent, ${email.color || "#818cf8"}, transparent)`, opacity: isTop ? 0.6 : 0 }} />
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3px", borderRadius: "24px 24px 0 0", background: `linear-gradient(90deg, transparent, ${email.color || "#4F46E5"}, transparent)`, opacity: isTop ? 0.6 : 0 }} />
 
         {isTop && (
           <>
