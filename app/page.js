@@ -313,13 +313,13 @@ export default function SwipeBox() {
       )}
 
       {/* Main content */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative", overflow: "hidden" }}>
         {emails.length > 0 ? (
           <>
             <div style={{ display: "flex", justifyContent: "center", gap: "24px", padding: "14px 20px 8px", fontSize: "11px", color: "#475569", fontWeight: 600, letterSpacing: "0.5px", textTransform: "uppercase" }}>
               <span>{"\u2190"} Mark Read</span><span>{"\u2191"} Snooze</span><span>{"\u2193"} Unsub</span><span>{emails[0]?.aiReply ? "Send" : "Done"} {"\u2192"}</span>
             </div>
-            <div style={{ flex: 1, width: "100%", maxWidth: "500px", position: "relative", padding: "8px 20px 20px", minHeight: "500px" }}>
+            <div style={{ flex: 1, width: "100%", maxWidth: "500px", position: "relative", padding: "0 20px", display: "flex", alignItems: "center", justifyContent: "center" }}>
               {emails.slice(0, 2).reverse().map((email, i) => {
                 const isTop = i === Math.min(emails.length, 2) - 1;
                 return <EmailCard key={email.id} email={email} isTop={isTop} onSwipe={handleSwipe} onTap={(e) => setExpandedEmail(e)} style={{ top: isTop ? "0px" : "8px" }} />;
