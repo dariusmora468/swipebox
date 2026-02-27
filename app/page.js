@@ -248,22 +248,22 @@ export default function SwipeBox() {
     } catch (err) { console.error("Remove failed:", err); }
   }, []);
 
-  const actionColors = { right: "#10B981", left: "#D97706", up: "#4F46E5", down: "#7C3AED" };
+  const actionColors = { right: "#7A8C6E", left: "#A0775A", up: "#B8963E", down: "#B07070" };
 
   if (isAuthenticated === null || (isAuthenticated && loading)) {
-    return <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#FFFFFF" }}><LoadingScreen message={loadingMessage} /></div>;
+    return <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#F5F0EB" }}><LoadingScreen message={loadingMessage} /></div>;
   }
   if (isAuthenticated === false) return <LoginScreen />;
 
   if (fetchError) return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '2rem', textAlign: 'center', background: '#FFFFFF', color: '#1A1A2E' }}>
-      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
-      <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Connection Error</h2>
-      <p style={{ color: '#6B7280', marginBottom: '1.5rem', maxWidth: '300px' }}>{fetchError}</p>
-      <button onClick={() => { setFetchError(null); fetchEmails(); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: '#4F46E5', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '2rem', textAlign: 'center', background: '#F5F0EB', color: '#2C2520' }}>
+      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{"\u26A0\uFE0F"}</div>
+      <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', fontFamily: "'Playfair Display', Georgia, serif" }}>Connection Error</h2>
+      <p style={{ color: '#6B5E54', marginBottom: '1.5rem', maxWidth: '300px' }}>{fetchError}</p>
+      <button onClick={() => { setFetchError(null); fetchEmails(); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: '#A0775A', color: '#FDFBF9', border: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}>
         Try Again
       </button>
-      <button onClick={() => { setFetchError(null); setIsAuthenticated(false); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: 'transparent', color: '#6B7280', border: '1px solid rgba(0,0,0,0.1)', fontWeight: 500, cursor: 'pointer', fontSize: '0.875rem', marginTop: '0.75rem' }}>
+      <button onClick={() => { setFetchError(null); setIsAuthenticated(false); }} style={{ padding: '0.75rem 2rem', borderRadius: '2rem', background: 'transparent', color: '#6B5E54', border: '1px solid rgba(120,100,80,0.14)', fontWeight: 500, cursor: 'pointer', fontSize: '0.875rem', marginTop: '0.75rem' }}>
         Reconnect Gmail
       </button>
     </div>
@@ -274,53 +274,84 @@ export default function SwipeBox() {
   const progressPercent = totalEmails > 0 ? (totalProcessed / totalEmails) * 100 : 0;
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#FFFFFF" }}>
-      {/* Header */}
-      <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(0,0,0,0.06)", background: "rgba(255,255,255,0.9)", backdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ width: "36px", height: "36px", borderRadius: "12px", background: "linear-gradient(135deg, #4F46E5, #7C3AED)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "16px" }}>{"\u2709"}</div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: "17px", color: "#1A1A2E", letterSpacing: "-0.3px" }}>SwipeBox</div>
-            {accounts.length > 0 && <div style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "1px" }}>{accounts.length} inbox{accounts.length > 1 ? "es" : ""} connected</div>}
-          </div>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#F5F0EB" }}>
+      {/* Header — Editorial style */}
+      <div style={{
+        padding: "18px 24px", display: "flex", alignItems: "center", justifyContent: "space-between",
+        borderBottom: "1px solid rgba(120,100,80,0.08)",
+        background: "rgba(245,240,235,0.92)", backdropFilter: "blur(20px)",
+        position: "sticky", top: 0, zIndex: 10,
+      }}>
+        <div>
+          <div style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontWeight: 700, fontSize: "22px", color: "#2C2520",
+            letterSpacing: "1.5px", textTransform: "uppercase",
+          }}>SwipeBox</div>
+          {accounts.length > 0 && (
+            <div style={{ fontSize: "11px", color: "#9C8E82", marginTop: "2px", letterSpacing: "0.3px" }}>
+              {accounts.length} inbox{accounts.length > 1 ? "es" : ""} connected
+            </div>
+          )}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          {emails.length > 0 && <div style={{ padding: "5px 14px", borderRadius: "20px", background: "#F5F5F7", border: "1px solid rgba(0,0,0,0.06)", fontSize: "13px", fontWeight: 700, color: "#6B7280" }}>{emails.length} left</div>}
-          <button onClick={() => setShowSettings(true)} title="Settings" style={{ width: "32px", height: "32px", borderRadius: "50%", border: "1.5px solid rgba(0,0,0,0.08)", background: "#F5F5F7", display: "flex", alignItems: "center", justifyContent: "center", color: "#6B7280", fontSize: "16px", cursor: "pointer", lineHeight: 1 }}>{"\u2699"}</button>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {emails.length > 0 && (
+            <div style={{
+              padding: "5px 14px", borderRadius: "20px",
+              background: "rgba(160,119,90,0.08)", border: "1px solid rgba(160,119,90,0.12)",
+              fontSize: "13px", fontWeight: 600, color: "#A0775A",
+            }}>{emails.length} left</div>
+          )}
+          <button onClick={() => setShowSettings(true)} title="Settings" style={{
+            width: "34px", height: "34px", borderRadius: "50%",
+            border: "1px solid rgba(120,100,80,0.1)", background: "rgba(120,100,80,0.04)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#9C8E82", fontSize: "16px", cursor: "pointer", lineHeight: 1,
+          }}>{"\u2699"}</button>
         </div>
       </div>
 
-      {/* Progress Bar — Prominent */}
+      {/* Progress Bar — Warm editorial tones */}
       {totalEmails > 0 && (
-        <div style={{ padding: "16px 20px 18px", background: "#FAFAFA", borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
+        <div style={{
+          padding: "16px 24px 16px",
+          background: "rgba(237,232,226,0.5)",
+          borderBottom: "1px solid rgba(120,100,80,0.06)",
+        }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ fontSize: "18px" }}>{progressPercent === 100 ? "\u{1F389}" : "\u26A1"}</span>
-              <span style={{ fontSize: "14px", fontWeight: 800, color: progressPercent === 100 ? "#10B981" : "#4F46E5" }}>
-                {emails.length > 0 ? "Swiping to Inbox Zero" : "Inbox Zero Achieved!"}
-              </span>
-            </div>
-            <span style={{ fontSize: "17px", fontWeight: 900, color: progressPercent === 100 ? "#10B981" : "#1A1A2E" }}>
+            <span style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: "14px", fontWeight: 600, fontStyle: "italic",
+              color: progressPercent === 100 ? "#7A8C6E" : "#6B5E54",
+            }}>
+              {emails.length > 0 ? "Swiping to Inbox Zero" : "Inbox Zero Achieved"}
+            </span>
+            <span style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: "18px", fontWeight: 700,
+              color: progressPercent === 100 ? "#7A8C6E" : "#2C2520",
+            }}>
               {Math.round(progressPercent)}%
             </span>
           </div>
-          <div style={{ height: "10px", borderRadius: "5px", background: "rgba(0,0,0,0.06)", overflow: "hidden" }}>
+          <div style={{ height: "6px", borderRadius: "3px", background: "rgba(120,100,80,0.08)", overflow: "hidden" }}>
             <div style={{
               height: "100%", width: `${progressPercent}%`,
-              background: progressPercent === 100 ? "linear-gradient(90deg, #10B981, #34d399)" : "linear-gradient(90deg, #4F46E5, #7C3AED, #A78BFA)",
+              background: progressPercent === 100
+                ? "linear-gradient(90deg, #7A8C6E, #93A785)"
+                : "linear-gradient(90deg, #A0775A, #C4845C, #B8963E)",
               backgroundSize: "200% 100%",
-              animation: progressPercent < 100 ? "shimmer 2s linear infinite" : "none",
-              transition: "width 0.5s ease", borderRadius: "5px",
-              boxShadow: `0 0 16px ${progressPercent === 100 ? "rgba(16,185,129,0.35)" : "rgba(79,70,229,0.3)"}`,
+              animation: progressPercent < 100 ? "shimmer 3s ease infinite" : "none",
+              transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)", borderRadius: "3px",
             }} />
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
-            <span style={{ fontSize: "12px", color: "#9CA3AF", fontWeight: 500 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px" }}>
+            <span style={{ fontSize: "11px", color: "#9C8E82", fontWeight: 500 }}>
               {totalProcessed} of {totalEmails} emails processed
             </span>
             {emails.length > 0 && emails.length <= 5 && (
-              <span style={{ fontSize: "12px", color: "#4F46E5", fontWeight: 600 }}>
-                Almost there! {"\u{1F4AA}"}
+              <span style={{ fontSize: "11px", color: "#A0775A", fontWeight: 600, fontStyle: "italic" }}>
+                Almost there
               </span>
             )}
           </div>
@@ -338,18 +369,23 @@ export default function SwipeBox() {
               })}
             </div>
 
-            {/* Swipe Hints + Customize (bottom) */}
-            <div style={{ width: "100%", padding: "16px 24px 28px", display: "flex", flexDirection: "column", alignItems: "center", gap: "14px" }}>
-              <div style={{ display: "flex", justifyContent: "space-around", width: "100%", maxWidth: "340px" }}>
+            {/* Swipe Hints — Refined serif labels */}
+            <div style={{ width: "100%", padding: "12px 24px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-around", width: "100%", maxWidth: "320px" }}>
                 {[
                   { arrow: "\u2190", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.left) || {}).label || "Read" },
                   { arrow: "\u2191", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.up) || {}).label || "Snooze" },
                   { arrow: "\u2193", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.down) || {}).label || "Unsub" },
                   { arrow: "\u2192", label: (AVAILABLE_ACTIONS.find(a => a.id === swipeMappings.right) || {}).label || "Done" },
                 ].map((item, idx) => (
-                  <div key={idx} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", minWidth: "56px" }}>
-                    <span style={{ fontSize: "18px", color: "#B0B5C0", fontWeight: 300, lineHeight: 1 }}>{item.arrow}</span>
-                    <span style={{ fontSize: "10px", color: "#9CA3AF", fontWeight: 600, letterSpacing: "0.5px", textTransform: "uppercase", textAlign: "center", lineHeight: 1.2 }}>{item.label}</span>
+                  <div key={idx} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", minWidth: "56px" }}>
+                    <span style={{ fontSize: "16px", color: "#B8A99A", fontWeight: 300, lineHeight: 1 }}>{item.arrow}</span>
+                    <span style={{
+                      fontFamily: "'Playfair Display', Georgia, serif",
+                      fontSize: "10px", color: "#9C8E82", fontWeight: 500,
+                      letterSpacing: "0.8px", textTransform: "uppercase",
+                      textAlign: "center", lineHeight: 1.2,
+                    }}>{item.label}</span>
                   </div>
                 ))}
               </div>
@@ -357,13 +393,14 @@ export default function SwipeBox() {
                 onClick={() => setShowSwipeSettings(true)}
                 style={{
                   display: "flex", alignItems: "center", gap: "5px",
-                  padding: "5px 12px", borderRadius: "20px",
-                  background: "transparent", border: "1px solid rgba(0,0,0,0.06)",
-                  color: "#B0B5C0", fontSize: "10px", fontWeight: 600,
+                  padding: "4px 12px", borderRadius: "16px",
+                  background: "transparent", border: "1px solid rgba(120,100,80,0.08)",
+                  color: "#B8A99A", fontSize: "10px", fontWeight: 500,
                   cursor: "pointer", letterSpacing: "0.3px",
+                  fontFamily: "'Playfair Display', Georgia, serif",
                 }}
               >
-                <span style={{ fontSize: "11px" }}>{"\u2699"}</span> Customize
+                Customize
               </button>
             </div>
           </>
@@ -452,12 +489,25 @@ export default function SwipeBox() {
         />
       )}
 
-      {/* Toast */}
+      {/* Toast — Warm editorial style */}
       {showToast && lastAction && (
-        <div style={{ position: "fixed", bottom: "100px", left: "50%", transform: "translateX(-50%)", padding: "12px 24px", borderRadius: "16px", background: "rgba(0,0,0,0.06)", backdropFilter: "blur(20px)", border: "1px solid rgba(0,0,0,0.08)", color: "#1A1A2E", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "10px", boxShadow: "0 8px 32px rgba(0,0,0,0.4)", zIndex: 100, animation: "slideUp 0.3s ease", whiteSpace: "nowrap" }}>
-          <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: actionColors[lastAction.direction], flexShrink: 0 }} />
+        <div style={{
+          position: "fixed", bottom: "100px", left: "50%", transform: "translateX(-50%)",
+          padding: "12px 22px", borderRadius: "14px",
+          background: "rgba(253,251,249,0.95)", backdropFilter: "blur(20px)",
+          border: "1px solid rgba(120,100,80,0.1)", color: "#2C2520",
+          fontSize: "13px", fontWeight: 500, display: "flex", alignItems: "center", gap: "10px",
+          boxShadow: "0 4px 24px rgba(60,45,30,0.12)", zIndex: 100,
+          animation: "slideUp 0.3s ease", whiteSpace: "nowrap",
+          fontFamily: "'Inter', -apple-system, sans-serif",
+        }}>
+          <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: actionColors[lastAction.direction], flexShrink: 0 }} />
           {lastAction.label}
-          <button onClick={handleUndo} style={{ marginLeft: "8px", padding: "4px 14px", borderRadius: "10px", border: "1px solid rgba(0,0,0,0.08)", background: "transparent", color: "#1A1A2E", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>Undo</button>
+          <button onClick={handleUndo} style={{
+            marginLeft: "8px", padding: "4px 14px", borderRadius: "10px",
+            border: "1px solid rgba(120,100,80,0.1)", background: "transparent",
+            color: "#A0775A", fontSize: "12px", fontWeight: 600, cursor: "pointer",
+          }}>Undo</button>
         </div>
       )}
     </div>

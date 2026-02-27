@@ -2,10 +2,10 @@
 
 function ActionBadge({ direction, opacity, hasReply }) {
   const config = {
-    right: { label: hasReply ? "SEND" : "DONE", color: "#34d399", glow: "rgba(52,211,153,0.3)" },
-    left: { label: "READ", color: "#fb923c", glow: "rgba(251,146,60,0.3)" },
-    up: { label: "SNOOZE", color: "#818cf8", glow: "rgba(129,140,248,0.3)" },
-    down: { label: "UNSUB", color: "#a855f7", glow: "rgba(168,85,247,0.3)" },
+    right: { label: hasReply ? "SEND" : "DONE", color: "#7A8C6E", glow: "rgba(122,140,110,0.3)" },
+    left: { label: "READ", color: "#A0775A", glow: "rgba(160,119,90,0.3)" },
+    up: { label: "SNOOZE", color: "#B8963E", glow: "rgba(184,150,62,0.3)" },
+    down: { label: "UNSUB", color: "#B07070", glow: "rgba(176,112,112,0.3)" },
   };
   const c = config[direction];
   if (!c) return null;
@@ -20,10 +20,11 @@ function ActionBadge({ direction, opacity, hasReply }) {
       opacity: Math.min(opacity, 1), transition: "opacity 0.1s", zIndex: 10, pointerEvents: "none",
     }}>
       <div style={{
-        border: `2px solid ${c.color}`, borderRadius: "12px", padding: "10px 24px",
-        color: c.color, fontWeight: 800, fontSize: "20px", letterSpacing: "3px",
-        background: "rgba(10, 10, 15, 0.85)", backdropFilter: "blur(12px)",
-        boxShadow: `0 0 30px ${c.glow}`,
+        border: `2px solid ${c.color}`, borderRadius: "10px", padding: "8px 20px",
+        color: c.color, fontWeight: 700, fontSize: "18px", letterSpacing: "2.5px",
+        fontFamily: "'Playfair Display', Georgia, serif",
+        background: "rgba(253,251,249,0.92)", backdropFilter: "blur(12px)",
+        boxShadow: `0 0 24px ${c.glow}`,
       }}>{c.label}</div>
     </div>
   );
