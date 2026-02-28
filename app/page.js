@@ -178,7 +178,7 @@ export default function SwipeBox() {
       if (current.aiReply) {
         // Optimistic: remove email immediately, rollback on failure
         setEmails((e) => e.slice(1));
-        setHistory((h) => [...h, { email: current, direction }]);
+        setHistory((h) => [...h, { email: current, direction, action }]);
         setStats((s) => ({ ...s, sent: s.sent + 1 }));
         setLastAction({ direction, label: `Reply sent to ${current.from}` });
         try {
@@ -199,7 +199,7 @@ export default function SwipeBox() {
     // === MARK READ ===
     if (action === "mark_read") {
       setEmails((e) => e.slice(1));
-      setHistory((h) => [...h, { email: current, direction }]);
+      setHistory((h) => [...h, { email: current, direction, action }]);
       setStats((s) => ({ ...s, read: s.read + 1 }));
       setLastAction({ direction, label: `Marked read: ${current.from}` });
       try {
@@ -217,7 +217,7 @@ export default function SwipeBox() {
     // === ARCHIVE ===
     if (action === "archive") {
       setEmails((e) => e.slice(1));
-      setHistory((h) => [...h, { email: current, direction }]);
+      setHistory((h) => [...h, { email: current, direction, action }]);
       setStats((s) => ({ ...s, read: s.read + 1 }));
       setLastAction({ direction, label: `Archived: ${current.from}` });
       try {
@@ -236,7 +236,7 @@ export default function SwipeBox() {
     if (action === "delete") {
       // Optimistic: remove email immediately
       setEmails((e) => e.slice(1));
-      setHistory((h) => [...h, { email: current, direction }]);
+      setHistory((h) => [...h, { email: current, direction, action }]);
       setStats((s) => ({ ...s, unsubscribed: s.unsubscribed + 1 }));
       setLastAction({ direction, label: `Unsub + deleted: ${current.from}` });
       try {
@@ -280,7 +280,7 @@ export default function SwipeBox() {
     // === UNSUBSCRIBE (standalone — kept for custom mappings) ===
     if (action === "unsubscribe") {
       setEmails((e) => e.slice(1));
-      setHistory((h) => [...h, { email: current, direction }]);
+      setHistory((h) => [...h, { email: current, direction, action }]);
       setStats((s) => ({ ...s, unsubscribed: s.unsubscribed + 1 }));
       setLastAction({ direction, label: `Unsubscribed: ${current.from}` });
       try {
@@ -320,7 +320,7 @@ export default function SwipeBox() {
     // === STAR (future) ===
     if (action === "star") {
       setEmails((e) => e.slice(1));
-      setHistory((h) => [...h, { email: current, direction }]);
+      setHistory((h) => [...h, { email: current, direction, action }]);
       setStats((s) => ({ ...s, read: s.read + 1 }));
       setLastAction({ direction, label: `Starred: ${current.from}` });
       try {
@@ -348,7 +348,7 @@ export default function SwipeBox() {
     addSnoozedEmail(email.id, email.account, snoozeUntil);
 
     setEmails((e) => e.filter((em) => em.id !== email.id));
-    setHistory((h) => [...h, { email, direction: "up" }]);
+    setHistory((h) => [...h, { email, direction: "up", action: "snooze" }]);
     setStats((s) => ({ ...s, snoozed: s.snoozed + 1 }));
     setLastAction({ direction: "up", label: `Snoozed: ${option.label}` });
 
@@ -375,14 +375,28 @@ export default function SwipeBox() {
     } catch (err) { console.error("Forward failed:", err); }
   }, [expandedEmail]);
 
-  const handleUndo = useCallback(() => {
+  const handleUndo = useCallback(async () => {
     if (history.length === 0) return;
     const last = history[history.length - 1];
+
+    // Optimistic: restore email to list immediately
     setHistory((h) => h.slice(0, -1));
     setEmails((e) => [last.email, ...e]);
-    const statMap = { right: "sent", left: "read", up: "snoozed", down: "unsubscribed" };
-    setStats((s) => ({ ...s, [statMap[last.direction]]: s[statMap[last.direction]] - 1 }));
-    setShowToast(false);
+    const statKey = last.action === "done" || last.action === "send" ? "sent"
+      : last.action === "delete" || last.action === "unsubscribe" ? "unsubscribed"
+      : last.action === "snooze" || last.action === "snoozed" ? "snoozed"
+      : "read";
+    setStats((s) => ({ ...s, [statKey]: Math.max(0, s[statKey] - 1) }));
+    setLastAction({ direction: last.direction, label: `Undo: ${last.email.from}` });
+
+    // Call API to reverse the Gmail action
+    try {
+      await callAction("undo", { ...last.email, originalAction: last.action });
+    } catch (err) {
+      console.error("Undo API failed:", err);
+      // Don't rollback the UI undo — the email is back in the list which is better UX
+      // The user can re-swipe if needed
+    }
   }, [history]);
 
   const handleRemoveAccount = useCallback(async (emailToRemove) => {
@@ -544,6 +558,35 @@ export default function SwipeBox() {
                 return <EmailCard key={email.id} email={email} isTop={isTop} onSwipe={handleSwipe} onTap={(e) => setExpandedEmail(e)} style={{ top: isTop ? "16px" : "24px" }} />;
               })}
             </div>
+
+            {/* Undo Button */}
+            {history.length > 0 && (
+              <div style={{ display: "flex", justifyContent: "center", padding: "0 24px 8px" }}>
+                <button
+                  onClick={handleUndo}
+                  style={{
+                    width: "52px", height: "52px", borderRadius: "50%",
+                    background: "#FDFBF9",
+                    border: "1.5px solid rgba(120,100,80,0.12)",
+                    boxShadow: "0 2px 12px rgba(60,45,30,0.08)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    cursor: "pointer",
+                    transition: "transform 0.2s, box-shadow 0.2s",
+                    flexDirection: "column", gap: "2px",
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.08)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(60,45,30,0.12)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 2px 12px rgba(60,45,30,0.08)"; }}
+                  title="Undo last action"
+                >
+                  <span style={{ fontSize: "20px", lineHeight: 1, color: "#A0775A" }}>{"\u21A9"}</span>
+                  <span style={{
+                    fontSize: "8px", fontWeight: 600, color: "#9C8E82",
+                    letterSpacing: "0.5px", textTransform: "uppercase",
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                  }}>Undo</span>
+                </button>
+              </div>
+            )}
 
             {/* Swipe Hints — Refined serif labels */}
             <div style={{ width: "100%", padding: "12px 24px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>

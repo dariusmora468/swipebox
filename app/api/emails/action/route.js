@@ -10,6 +10,8 @@ import {
   trashEmail,
   snoozeEmail,
   unsnoozeEmail,
+  undoMarkRead,
+  untrashEmail,
   forwardEmail,
 } from "../../../../lib/gmail";
 
@@ -96,6 +98,18 @@ export async function POST(request) {
         }
         await forwardEmail(tokens, email, forwardTo);
         break;
+
+      case "undo": {
+        // Reverse the original action — restore email to inbox as unread
+        const originalAction = email.originalAction;
+        if (originalAction === "delete") {
+          await untrashEmail(tokens, email.id);
+        } else {
+          // mark_read, archive, send, unsubscribe, snooze — all moved out of inbox
+          await undoMarkRead(tokens, email.id);
+        }
+        break;
+      }
 
       default:
         return NextResponse.json({ error: "invalid_action" }, { status: 400 });
