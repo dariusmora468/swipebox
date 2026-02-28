@@ -31,11 +31,12 @@ export async function GET(request) {
   }
 
   try {
-    const emails = await fetchAllAccountEmails(accounts);
+    const { emails, totalUnread } = await fetchAllAccountEmails(accounts);
 
     if (emails.length === 0) {
       return NextResponse.json({
         emails: [],
+        totalUnread: 0,
         accounts: accounts.map((a) => ({ email: a.email, name: a.name })),
         message: "inbox_zero",
       });
@@ -53,6 +54,7 @@ export async function GET(request) {
 
     return NextResponse.json({
       emails: processed,
+      totalUnread,
       accounts: accounts.map((a) => ({ email: a.email, name: a.name })),
     });
   } catch (err) {

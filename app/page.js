@@ -135,7 +135,8 @@ export default function SwipeBox() {
       setAccounts(data.accounts || []);
       setHistory([]);
       setStats({ sent: 0, read: 0, snoozed: 0, unsubscribed: 0 });
-      setInitialEmailCount(emailList.length);
+      // Use Gmail's real unread count if available, otherwise fall back to batch size
+      setInitialEmailCount(data.totalUnread || emailList.length);
       setHalfwayTriggered(false);
       setLoading(false);
     } catch (err) { console.error("Error:", err);
