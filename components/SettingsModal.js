@@ -78,6 +78,28 @@ function SettingsModal({ accounts, onClose, onRemoveAccount }) {
         <div style={{ fontSize: "12px", color: "#9C8E82", marginTop: "16px", textAlign: "center", lineHeight: 1.5 }}>
           Connect multiple Gmail accounts to manage all your inboxes from one place.
         </div>
+
+        {/* Feedback */}
+        <div style={{ borderTop: "1px solid rgba(120,100,80,0.08)", marginTop: "24px", paddingTop: "20px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 600, color: "#A0775A", letterSpacing: "0.8px", textTransform: "uppercase", marginBottom: "14px" }}>
+            Help Us Improve
+          </div>
+          <a href="mailto:hello@dariusmora.com?subject=SwipeBox%20Feedback" style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+            padding: "14px", borderRadius: "14px",
+            border: "1px solid rgba(122,140,110,0.15)", background: "rgba(122,140,110,0.04)",
+            color: "#7A8C6E", fontSize: "14px", fontWeight: 600,
+            textDecoration: "none", cursor: "pointer",
+          }}>
+            {"\u2709\uFE0F"} Send Feedback
+          </a>
+        </div>
+
+        {/* Legal links */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginTop: "20px", paddingTop: "16px", borderTop: "1px solid rgba(120,100,80,0.06)" }}>
+          <a href="/privacy" style={{ fontSize: "12px", color: "#9C8E82", textDecoration: "none" }}>Privacy</a>
+          <a href="/terms" style={{ fontSize: "12px", color: "#9C8E82", textDecoration: "none" }}>Terms</a>
+        </div>
       </div>
     </div>
   );

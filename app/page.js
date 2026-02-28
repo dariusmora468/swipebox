@@ -103,7 +103,13 @@ export default function SwipeBox() {
       setIsAuthenticated(true);
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        setFetchError(errData.error || 'Failed to load emails. Please try again.');
+        const friendlyErrors = {
+          'token_expired': 'Your Gmail session has expired. Please sign in again.',
+          'fetch_failed': 'We couldn\u2019t reach Gmail right now. Please try again in a moment.',
+          'account_not_found': 'We couldn\u2019t find your account. Please sign in again.',
+          'not_authenticated': 'Please sign in to continue.',
+        };
+        setFetchError(friendlyErrors[errData.error] || 'Something went wrong loading your emails. Please try again.');
         setLoading(false);
         return;
       }
