@@ -14,6 +14,7 @@ import LoginScreen from '../components/LoginScreen';
 import CelebrationOverlay from '../components/CelebrationOverlay';
 import LandingPage from '../components/LandingPage';
 import Onboarding from '../components/Onboarding';
+import AddToHomeScreen from '../components/AddToHomeScreen';
 
 export default function SwipeBox() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
@@ -55,6 +56,12 @@ export default function SwipeBox() {
     // If user has a valid promo code, skip to app
     if (localStorage.getItem('swipebox_promo_validated') === 'true') return 'app';
     return 'landing';
+  });
+
+  // Add to Home Screen tutorial state
+  const [showHomeScreenTutorial, setShowHomeScreenTutorial] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('swipebox_homescreen_shown') !== 'true';
   });
 
   // Celebration state
@@ -440,6 +447,20 @@ export default function SwipeBox() {
   // Gmail connect screen (after onboarding or returning users)
   if (isAuthenticated === false) return <LoginScreen />;
 
+  // Add to Home Screen tutorial (after Gmail connect, before swiping)
+  if (isAuthenticated && showHomeScreenTutorial) {
+    return (
+      <AddToHomeScreen
+        onComplete={() => {
+          setShowHomeScreenTutorial(false);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('swipebox_homescreen_shown', 'true');
+          }
+        }}
+      />
+    );
+  }
+
   if (fetchError) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '2rem', textAlign: 'center', background: '#F5F0EB', color: '#2C2520' }}>
       <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{"\u26A0\uFE0F"}</div>
@@ -683,9 +704,11 @@ export default function SwipeBox() {
               localStorage.removeItem('swipebox_onboarded');
               localStorage.removeItem('swipebox_promo_validated');
               localStorage.removeItem('swipebox_promo_code');
+              localStorage.removeItem('swipebox_homescreen_shown');
             }
             setShowSettings(false);
             setIsAuthenticated(false);
+            setShowHomeScreenTutorial(true);
             setAppView('landing');
             setEmails([]);
             setAccounts([]);
