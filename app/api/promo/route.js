@@ -21,16 +21,25 @@ function ensureDataDir() {
 
 function getPromoCodes() {
   ensureDataDir();
-  if (!fs.existsSync(PROMO_FILE)) {
-    // Create with defaults
-    fs.writeFileSync(PROMO_FILE, JSON.stringify(DEFAULT_CODES, null, 2));
-    return DEFAULT_CODES;
+  let fileCodes = [];
+  if (fs.existsSync(PROMO_FILE)) {
+    try {
+      fileCodes = JSON.parse(fs.readFileSync(PROMO_FILE, 'utf8'));
+    } catch {
+      fileCodes = [];
+    }
   }
-  try {
-    return JSON.parse(fs.readFileSync(PROMO_FILE, 'utf8'));
-  } catch {
-    return DEFAULT_CODES;
+  // Always merge defaults — ensures new codes are available even if file was created earlier
+  const existingCodeSet = new Set(fileCodes.map(c => c.code));
+  const merged = [...fileCodes];
+  for (const def of DEFAULT_CODES) {
+    if (!existingCodeSet.has(def.code)) {
+      merged.push(def);
+    }
   }
+  // Save merged list back
+  fs.writeFileSync(PROMO_FILE, JSON.stringify(merged, null, 2));
+  return merged;
 }
 
 export async function POST(request) {

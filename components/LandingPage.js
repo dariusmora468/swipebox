@@ -6,16 +6,16 @@ import GoogleIcon from './GoogleIcon';
 const DEMO_CARDS = [
   {
     id: 'demo-1',
-    from: 'Pizza Planet Newsletter',
-    email: 'deals@pizzaplanet.fake',
-    subject: '🍕 50% Off Infinity Breadsticks — TODAY ONLY',
-    summary: 'Congratulations! You\'ve been selected for unlimited breadsticks. Click now before this once-in-a-lifetime offer expires in 3... 2...',
-    category: 'Promo',
-    action: 'unsubscribe',
-    direction: 'down',
-    badge: { label: 'UNSUB', color: '#B07070' },
-    avatar: '🍕',
-    color: '#B07070',
+    from: 'Project Update Bot',
+    email: 'updates@workspace.io',
+    subject: 'Weekly digest: 5 tasks completed',
+    summary: 'Your team crushed it this week! 5 tasks shipped, 2 PRs merged, and zero incidents. Here\'s the full breakdown...',
+    category: 'Updates',
+    action: 'mark_read',
+    direction: 'right',
+    badge: { label: 'READ', color: '#A0775A' },
+    avatar: '📊',
+    color: '#A0775A',
   },
   {
     id: 'demo-2',
@@ -32,6 +32,19 @@ const DEMO_CARDS = [
   },
   {
     id: 'demo-3',
+    from: 'Pizza Planet Newsletter',
+    email: 'deals@pizzaplanet.fake',
+    subject: '🍕 50% Off Infinity Breadsticks — TODAY ONLY',
+    summary: 'Congratulations! You\'ve been selected for unlimited breadsticks. Click now before this once-in-a-lifetime offer expires in 3... 2...',
+    category: 'Promo',
+    action: 'unsubscribe',
+    direction: 'down',
+    badge: { label: 'UNSUB', color: '#B07070' },
+    avatar: '🍕',
+    color: '#B07070',
+  },
+  {
+    id: 'demo-4',
     from: 'Best Friend',
     email: 'bestie@friends.co',
     subject: 'Dinner tonight?',
@@ -43,19 +56,6 @@ const DEMO_CARDS = [
     avatar: '👋',
     color: '#7A8C6E',
     aiReply: 'Sounds great! I\'m in — see you at 7?',
-  },
-  {
-    id: 'demo-4',
-    from: 'Project Update Bot',
-    email: 'updates@workspace.io',
-    subject: 'Weekly digest: 5 tasks completed',
-    summary: 'Your team crushed it this week! 5 tasks shipped, 2 PRs merged, and zero incidents. Here\'s the full breakdown...',
-    category: 'Updates',
-    action: 'mark_read',
-    direction: 'right',
-    badge: { label: 'READ', color: '#A0775A' },
-    avatar: '📊',
-    color: '#A0775A',
   },
 ];
 
@@ -388,18 +388,9 @@ export default function LandingPage({ onGetStarted, onHaveInvite }) {
           margin: '0 0 12px',
           letterSpacing: '-0.3px',
         }}>
-          Swipe your inbox<br />
-          <span style={{ color: '#A0775A' }}>in minutes a day</span>
+          Swipe to inbox zero<br />
+          <span style={{ color: '#A0775A' }}>in just a few minutes</span>
         </h1>
-        <p style={{
-          fontSize: '15px',
-          color: '#6B5E54',
-          lineHeight: 1.65,
-          margin: '0 auto 28px',
-          maxWidth: '340px',
-        }}>
-          AI reads your emails, drafts replies, and lets you power through your inbox with just a swipe.
-        </p>
       </div>
 
       {/* Animated Demo */}
@@ -408,7 +399,7 @@ export default function LandingPage({ onGetStarted, onHaveInvite }) {
         maxWidth: '380px',
         height: '280px',
         position: 'relative',
-        margin: '0 auto 12px',
+        margin: '0 auto 28px',
         padding: '0 24px',
       }}>
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -430,32 +421,6 @@ export default function LandingPage({ onGetStarted, onHaveInvite }) {
         </div>
       </div>
 
-      {/* Action legend */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        gap: '20px',
-        margin: '0 0 32px',
-        flexWrap: 'wrap',
-        padding: '0 24px',
-      }}>
-        {[
-          { arrow: '↓', label: 'Unsub', color: '#B07070' },
-          { arrow: '←', label: 'Snooze', color: '#B8963E' },
-          { arrow: '↑', label: 'Reply', color: '#7A8C6E' },
-          { arrow: '→', label: 'Read', color: '#A0775A' },
-        ].map((item, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <span style={{ fontSize: '13px', color: item.color, fontWeight: 600 }}>{item.arrow}</span>
-            <span style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: '11px', color: '#9C8E82', fontWeight: 500,
-              letterSpacing: '0.5px', textTransform: 'uppercase',
-            }}>{item.label}</span>
-          </div>
-        ))}
-      </div>
-
       {/* CTAs Section */}
       <div style={{
         width: '100%',
@@ -466,29 +431,6 @@ export default function LandingPage({ onGetStarted, onHaveInvite }) {
         alignItems: 'center',
         gap: '16px',
       }}>
-        {/* Primary CTA: Get Started (goes to onboarding) */}
-        <button
-          onClick={onGetStarted}
-          style={{
-            width: '100%',
-            padding: '16px 32px',
-            borderRadius: '14px',
-            background: 'linear-gradient(135deg, #A0775A, #C4845C)',
-            color: '#FDFBF9',
-            fontSize: '16px',
-            fontWeight: 600,
-            border: 'none',
-            cursor: 'pointer',
-            boxShadow: '0 4px 24px rgba(160,119,90,0.25)',
-            letterSpacing: '0.3px',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-          }}
-          onMouseEnter={e => { e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 6px 32px rgba(160,119,90,0.3)'; }}
-          onMouseLeave={e => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 24px rgba(160,119,90,0.25)'; }}
-        >
-          Get Started — It&apos;s Free
-        </button>
-
         {/* Waitlist form */}
         <div style={{ width: '100%', textAlign: 'center' }}>
           <p style={{ fontSize: '13px', color: '#9C8E82', marginBottom: '10px' }}>
