@@ -149,7 +149,7 @@ export default function SwipeBox() {
   };
 
   const handleSwipe = useCallback(async (direction, replyText) => {
-    if (emails.length === 0 || actionInProgress) return;
+    if (emails.length === 0) return;
     setExpandedEmail(null);
     const current = emails[0];
     const action = getActionForDirection(direction);
@@ -164,18 +164,20 @@ export default function SwipeBox() {
     // === REPLY / SEND (done): either auto-send AI draft or open compose ===
     if (action === "done") {
       if (current.aiReply) {
-        setActionInProgress(true);
+        // Optimistic: remove email immediately, rollback on failure
+        setEmails((e) => e.slice(1));
+        setHistory((h) => [...h, { email: current, direction }]);
+        setStats((s) => ({ ...s, sent: s.sent + 1 }));
+        setLastAction({ direction, label: `Reply sent to ${current.from}` });
         try {
           await callAction("send", current, { replyText: current.aiReply });
-          setEmails((e) => e.slice(1));
-          setHistory((h) => [...h, { email: current, direction }]);
-          setStats((s) => ({ ...s, sent: s.sent + 1 }));
-          setLastAction({ direction, label: `Reply sent to ${current.from}` });
         } catch (err) {
-          console.error("Reply failed:", err);
+          console.error("Reply failed, rolling back:", err);
+          setEmails((e) => [current, ...e]);
+          setHistory((h) => h.slice(0, -1));
+          setStats((s) => ({ ...s, sent: s.sent - 1 }));
           setLastAction({ direction, label: `Failed — ${current.from}` });
         }
-        setActionInProgress(false);
       } else {
         setComposeState({ email: current, mode: "reply" });
       }
@@ -184,43 +186,49 @@ export default function SwipeBox() {
 
     // === MARK READ ===
     if (action === "mark_read") {
-      setActionInProgress(true);
+      setEmails((e) => e.slice(1));
+      setHistory((h) => [...h, { email: current, direction }]);
+      setStats((s) => ({ ...s, read: s.read + 1 }));
+      setLastAction({ direction, label: `Marked read: ${current.from}` });
       try {
         await callAction("mark_read", current);
-        setEmails((e) => e.slice(1));
-        setHistory((h) => [...h, { email: current, direction }]);
-        setStats((s) => ({ ...s, read: s.read + 1 }));
-        setLastAction({ direction, label: `Marked read: ${current.from}` });
       } catch (err) {
-        console.error("Mark read failed:", err);
+        console.error("Mark read failed, rolling back:", err);
+        setEmails((e) => [current, ...e]);
+        setHistory((h) => h.slice(0, -1));
+        setStats((s) => ({ ...s, read: s.read - 1 }));
         setLastAction({ direction, label: `Failed — ${current.from}` });
       }
-      setActionInProgress(false);
       return;
     }
 
     // === ARCHIVE ===
     if (action === "archive") {
-      setActionInProgress(true);
+      setEmails((e) => e.slice(1));
+      setHistory((h) => [...h, { email: current, direction }]);
+      setStats((s) => ({ ...s, read: s.read + 1 }));
+      setLastAction({ direction, label: `Archived: ${current.from}` });
       try {
         await callAction("archive", current);
-        setEmails((e) => e.slice(1));
-        setHistory((h) => [...h, { email: current, direction }]);
-        setStats((s) => ({ ...s, read: s.read + 1 }));
-        setLastAction({ direction, label: `Archived: ${current.from}` });
       } catch (err) {
-        console.error("Archive failed:", err);
+        console.error("Archive failed, rolling back:", err);
+        setEmails((e) => [current, ...e]);
+        setHistory((h) => h.slice(0, -1));
+        setStats((s) => ({ ...s, read: s.read - 1 }));
         setLastAction({ direction, label: `Failed — ${current.from}` });
       }
-      setActionInProgress(false);
       return;
     }
 
     // === DELETE (unsub + delete combo) ===
     if (action === "delete") {
-      setActionInProgress(true);
+      // Optimistic: remove email immediately
+      setEmails((e) => e.slice(1));
+      setHistory((h) => [...h, { email: current, direction }]);
+      setStats((s) => ({ ...s, unsubscribed: s.unsubscribed + 1 }));
+      setLastAction({ direction, label: `Unsub + deleted: ${current.from}` });
       try {
-        // Step 1: Try to unsubscribe (auto one-click or get link)
+        // Step 1: Try to unsubscribe (best-effort, don't block on failure)
         try {
           const unsubRes = await fetch("/api/emails/unsubscribe", {
             method: "POST",
@@ -247,21 +255,22 @@ export default function SwipeBox() {
         } catch (unsubErr) { console.error("Unsub step failed (continuing to delete):", unsubErr); }
         // Step 2: Always trash the email — this is the critical part
         await callAction("delete", current);
-        setEmails((e) => e.slice(1));
-        setHistory((h) => [...h, { email: current, direction }]);
-        setStats((s) => ({ ...s, unsubscribed: s.unsubscribed + 1 }));
-        setLastAction({ direction, label: `Unsub + deleted: ${current.from}` });
       } catch (err) {
-        console.error("Delete failed:", err);
+        console.error("Delete failed, rolling back:", err);
+        setEmails((e) => [current, ...e]);
+        setHistory((h) => h.slice(0, -1));
+        setStats((s) => ({ ...s, unsubscribed: s.unsubscribed - 1 }));
         setLastAction({ direction, label: `Failed — ${current.from}` });
       }
-      setActionInProgress(false);
       return;
     }
 
     // === UNSUBSCRIBE (standalone — kept for custom mappings) ===
     if (action === "unsubscribe") {
-      setActionInProgress(true);
+      setEmails((e) => e.slice(1));
+      setHistory((h) => [...h, { email: current, direction }]);
+      setStats((s) => ({ ...s, unsubscribed: s.unsubscribed + 1 }));
+      setLastAction({ direction, label: `Unsubscribed: ${current.from}` });
       try {
         const unsubRes = await fetch("/api/emails/unsubscribe", {
           method: "POST",
@@ -285,37 +294,35 @@ export default function SwipeBox() {
             setShowUnsubOverlay(true);
           }
         }
-        // Archive after unsubscribe
         await callAction("unsubscribe", current);
-        setEmails((e) => e.slice(1));
-        setHistory((h) => [...h, { email: current, direction }]);
-        setStats((s) => ({ ...s, unsubscribed: s.unsubscribed + 1 }));
-        setLastAction({ direction, label: `Unsubscribed: ${current.from}` });
       } catch (err) {
-        console.error("Unsubscribe failed:", err);
+        console.error("Unsubscribe failed, rolling back:", err);
+        setEmails((e) => [current, ...e]);
+        setHistory((h) => h.slice(0, -1));
+        setStats((s) => ({ ...s, unsubscribed: s.unsubscribed - 1 }));
         setLastAction({ direction, label: `Failed — ${current.from}` });
       }
-      setActionInProgress(false);
       return;
     }
 
     // === STAR (future) ===
     if (action === "star") {
-      setActionInProgress(true);
+      setEmails((e) => e.slice(1));
+      setHistory((h) => [...h, { email: current, direction }]);
+      setStats((s) => ({ ...s, read: s.read + 1 }));
+      setLastAction({ direction, label: `Starred: ${current.from}` });
       try {
         await callAction("star", current);
-        setEmails((e) => e.slice(1));
-        setHistory((h) => [...h, { email: current, direction }]);
-        setStats((s) => ({ ...s, read: s.read + 1 }));
-        setLastAction({ direction, label: `Starred: ${current.from}` });
       } catch (err) {
-        console.error("Star failed:", err);
+        console.error("Star failed, rolling back:", err);
+        setEmails((e) => [current, ...e]);
+        setHistory((h) => h.slice(0, -1));
+        setStats((s) => ({ ...s, read: s.read - 1 }));
         setLastAction({ direction, label: `Failed — ${current.from}` });
       }
-      setActionInProgress(false);
       return;
     }
-  }, [emails, actionInProgress, getActionForDirection]);
+  }, [emails, getActionForDirection]);
 
   const handleSnoozeSelect = useCallback(async (option) => {
     const email = pendingSnoozeEmail || emails[0];
@@ -333,15 +340,15 @@ export default function SwipeBox() {
     setStats((s) => ({ ...s, snoozed: s.snoozed + 1 }));
     setLastAction({ direction: "up", label: `Snoozed: ${option.label}` });
 
-    setActionInProgress(true);
     try {
-      await fetch("/api/emails/action", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "snooze", email }),
-      });
-    } catch (err) { console.error("Snooze failed:", err); }
-    setActionInProgress(false);
+      await callAction("snooze", email);
+    } catch (err) {
+      console.error("Snooze failed, rolling back:", err);
+      setEmails((e) => [email, ...e]);
+      setHistory((h) => h.slice(0, -1));
+      setStats((s) => ({ ...s, snoozed: s.snoozed - 1 }));
+      setLastAction({ direction: "up", label: `Failed — ${email.from}` });
+    }
   }, [pendingSnoozeEmail, emails]);
 
   const handleForward = useCallback(async (toEmail) => {

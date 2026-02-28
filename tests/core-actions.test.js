@@ -166,7 +166,10 @@ const hardcodedDirChecks = [
 
 // Extract handleSwipe function body
 const handleSwipeStart = pageJs.indexOf('const handleSwipe = useCallback');
-const handleSwipeEnd = pageJs.indexOf('}, [emails, actionInProgress', handleSwipeStart);
+// Find the closing of the useCallback — look for ], [ pattern after handleSwipe start
+let handleSwipeEnd = pageJs.indexOf('}, [emails, getActionForDirection]', handleSwipeStart);
+if (handleSwipeEnd < 0) handleSwipeEnd = pageJs.indexOf('}, [emails, actionInProgress', handleSwipeStart);
+if (handleSwipeEnd < 0) handleSwipeEnd = pageJs.indexOf('}, [emails,', handleSwipeStart);
 const handleSwipeBody = handleSwipeStart >= 0 && handleSwipeEnd >= 0
   ? pageJs.substring(handleSwipeStart, handleSwipeEnd)
   : '';
@@ -241,10 +244,39 @@ if (actionRoute.includes('email.account || email.accountEmail') || actionRoute.i
 }
 
 // handleSwipe must check API response (not just catch network errors)
-if (pageJs.includes('!res.ok') || pageJs.includes('res.ok')) {
+if (pageJs.includes('callAction') && pageJs.includes('!res.ok')) {
+  pass('handleSwipe checks API response status (not just network errors)');
+} else if (pageJs.includes('!res.ok') || pageJs.includes('res.ok')) {
   pass('handleSwipe checks API response status (not just network errors)');
 } else {
   fail('handleSwipe does NOT check API response — failed actions are silently swallowed!');
+}
+
+// 4c. Optimistic update with rollback
+section('4c. Optimistic Update with Rollback');
+
+// Every action in handleSwipe must have rollback (re-add email on failure)
+const rollbackActions = ['mark_read', 'archive', 'delete', 'star', 'done'];
+for (const action of rollbackActions) {
+  // Find the if block for this action in handleSwipe
+  const actionIdx = handleSwipeBody.indexOf(`action === "${action}"`);
+  if (actionIdx >= 0) {
+    // Look for rollback pattern: setEmails((e) => [current, ...e]) in the catch block
+    const blockAfter = handleSwipeBody.substring(actionIdx, actionIdx + 2500);
+    if (blockAfter.includes('[current, ...e]') || blockAfter.includes('rolling back')) {
+      pass(`Action "${action}" has rollback on failure`);
+    } else {
+      fail(`Action "${action}" is MISSING rollback — failed actions will lose emails!`);
+    }
+  }
+}
+
+// EmailCard must animate off-screen on swipe (no snap-back)
+const emailCardSource = fs.readFileSync(path.join(__dirname, '..', 'components', 'EmailCard.js'), 'utf8');
+if (emailCardSource.includes('swipedAway') && emailCardSource.includes('FLY_DISTANCE')) {
+  pass('EmailCard animates card off-screen on swipe (no bounce-back)');
+} else {
+  fail('EmailCard does NOT animate off-screen — cards will bounce back to center!');
 }
 
 // ============================================================

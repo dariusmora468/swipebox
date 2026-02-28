@@ -9,7 +9,9 @@ function EmailCard({ email, isTop, onSwipe, onTap, style }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [hasMoved, setHasMoved] = useState(false);
+  const [swipedAway, setSwipedAway] = useState(false);
   const THRESHOLD = 100;
+  const FLY_DISTANCE = 600;
 
   const getSwipeDirection = useCallback(() => {
     const absX = Math.abs(offset.x);
@@ -30,7 +32,7 @@ function EmailCard({ email, isTop, onSwipe, onTap, style }) {
   }, [offset]);
 
   const handlePointerDown = (e) => {
-    if (!isTop) return;
+    if (!isTop || swipedAway) return;
     dragStart.current = { x: e.clientX, y: e.clientY };
     setIsDragging(true);
     setHasMoved(false);
@@ -49,17 +51,29 @@ function EmailCard({ email, isTop, onSwipe, onTap, style }) {
     if (!isDragging) return;
     const dir = getSwipeDirection();
     if (dir) {
+      // Fly card off-screen in swipe direction BEFORE calling the action
+      const flyTarget = {
+        x: dir === "right" ? FLY_DISTANCE : dir === "left" ? -FLY_DISTANCE : 0,
+        y: dir === "up" ? -FLY_DISTANCE : dir === "down" ? FLY_DISTANCE : 0,
+      };
+      setOffset(flyTarget);
+      setSwipedAway(true);
+      setIsDragging(false);
+      dragStart.current = null;
+      // Fire the action after the card starts flying away
       if (dir === "right") {
         onSwipe(dir, email.aiReply || null);
       } else {
         onSwipe(dir, null);
       }
-    } else if (!hasMoved && isTop) {
-      onTap(email);
+    } else {
+      if (!hasMoved && isTop) {
+        onTap(email);
+      }
+      setOffset({ x: 0, y: 0 });
+      setIsDragging(false);
+      dragStart.current = null;
     }
-    setOffset({ x: 0, y: 0 });
-    setIsDragging(false);
-    dragStart.current = null;
   };
 
   const rotation = offset.x * 0.04;
@@ -74,7 +88,9 @@ function EmailCard({ email, isTop, onSwipe, onTap, style }) {
         position: "absolute", width: "calc(100% - 40px)", maxWidth: "440px", left: "50%",
         cursor: isTop ? (isDragging ? "grabbing" : "grab") : "default",
         transform: `translateX(-50%) translateX(${offset.x}px) translateY(${offset.y}px) rotate(${rotation}deg) scale(${scale})`,
-        transition: isDragging ? "none" : "transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        transition: isDragging ? "none" : swipedAway ? "transform 0.35s ease-in" : "transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        opacity: swipedAway ? 0 : 1,
+        pointerEvents: swipedAway ? "none" : "auto",
         zIndex: isTop ? 2 : 1, touchAction: "none", userSelect: "none", ...style,
       }}>
       <div style={{
