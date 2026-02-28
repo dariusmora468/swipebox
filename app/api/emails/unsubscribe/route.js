@@ -67,16 +67,21 @@ export async function POST(request) {
 
         // Execute the one-click unsubscribe
         try {
-          await fetch(unsubscribeUrl, {
+          const oneClickRes = await fetch(unsubscribeUrl, {
             method: "POST",
             headers: {
               "Content-Type": "application/x-www-form-urlencoded",
             },
             body: "List-Unsubscribe=One-Click",
           });
+          if (!oneClickRes.ok) {
+            // Server rejected the one-click — fall back to opening the link
+            logError('api:unsubscribe', `One-click returned ${oneClickRes.status}`, { url: unsubscribeUrl });
+            method = "link";
+          }
         } catch (err) {
-          // One-click failed, fall back to link
-          logError('api:unsubscribe', 'Unsubscribe error', err);
+          // Network error — fall back to link
+          logError('api:unsubscribe', 'One-click fetch failed', err);
           method = "link";
         }
       }
@@ -124,19 +129,33 @@ export async function POST(request) {
   }
 }
 
-// Extract text/html body from email payload
+// Extract text/html body from email payload (handles nested MIME parts)
 function extractEmailBody(payload) {
-  if (payload.parts) {
-    const htmlPart = payload.parts.find((p) => p.mimeType === "text/html");
-    if (htmlPart?.body?.data) {
-      return Buffer.from(htmlPart.body.data, "base64").toString("utf-8");
-    }
-    const textPart = payload.parts.find((p) => p.mimeType === "text/plain");
-    if (textPart?.body?.data) {
-      return Buffer.from(textPart.body.data, "base64").toString("utf-8");
-    }
-  } else if (payload.body?.data) {
+  // Direct body data
+  if (payload.mimeType === "text/html" && payload.body?.data) {
     return Buffer.from(payload.body.data, "base64").toString("utf-8");
+  }
+  if (!payload.parts) {
+    if (payload.body?.data) {
+      return Buffer.from(payload.body.data, "base64").toString("utf-8");
+    }
+    return null;
+  }
+  // Recurse into parts — prefer HTML
+  for (const part of payload.parts) {
+    if (part.mimeType === "text/html" && part.body?.data) {
+      return Buffer.from(part.body.data, "base64").toString("utf-8");
+    }
+    if (part.parts) {
+      const nested = extractEmailBody(part);
+      if (nested) return nested;
+    }
+  }
+  // Fall back to text/plain
+  for (const part of payload.parts) {
+    if (part.mimeType === "text/plain" && part.body?.data) {
+      return Buffer.from(part.body.data, "base64").toString("utf-8");
+    }
   }
   return null;
 }

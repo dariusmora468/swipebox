@@ -393,14 +393,18 @@ export default function LandingPage({ onGetStarted, onHaveInvite }) {
         </h1>
       </div>
 
-      {/* Animated Demo */}
+      {/* Animated Demo — centered between title and CTAs */}
       <div style={{
         width: '100%',
         maxWidth: '380px',
         height: '280px',
         position: 'relative',
-        margin: '0 auto 28px',
+        margin: '0 auto',
         padding: '0 24px',
+        flex: '1 1 auto',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}>
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
           {visibleCards.slice(0, 3).reverse().map((card, i) => {
@@ -433,8 +437,16 @@ export default function LandingPage({ onGetStarted, onHaveInvite }) {
       }}>
         {/* Waitlist form */}
         <div style={{ width: '100%', textAlign: 'center' }}>
-          <p style={{ fontSize: '13px', color: '#9C8E82', marginBottom: '10px' }}>
-            Or join the waitlist for early access
+          <p style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: '18px',
+            fontWeight: 700,
+            color: '#2C2520',
+            marginBottom: '14px',
+            letterSpacing: '-0.2px',
+            lineHeight: 1.3,
+          }}>
+            Join the waitlist for early access
           </p>
           {waitlistStatus === 'success' ? (
             <div style={{
@@ -462,26 +474,29 @@ export default function LandingPage({ onGetStarted, onHaveInvite }) {
                 required
                 style={{
                   flex: 1,
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(120,100,80,0.12)',
+                  padding: '14px 18px',
+                  borderRadius: '14px',
+                  border: '1.5px solid rgba(160,119,90,0.18)',
                   background: '#FDFBF9',
-                  fontSize: '14px',
+                  fontSize: '15px',
                   color: '#2C2520',
                   outline: 'none',
+                  boxShadow: '0 2px 8px rgba(160,119,90,0.06)',
                 }}
               />
               <button type="submit" disabled={waitlistStatus === 'sending'} style={{
-                padding: '12px 20px',
-                borderRadius: '12px',
-                background: '#A0775A',
+                padding: '14px 24px',
+                borderRadius: '14px',
+                background: 'linear-gradient(135deg, #A0775A, #8B6549)',
                 color: '#FDFBF9',
-                fontSize: '14px',
-                fontWeight: 600,
+                fontSize: '15px',
+                fontWeight: 700,
                 border: 'none',
                 cursor: 'pointer',
                 opacity: waitlistStatus === 'sending' ? 0.7 : 1,
                 whiteSpace: 'nowrap',
+                boxShadow: '0 4px 14px rgba(160,119,90,0.25)',
+                letterSpacing: '0.3px',
               }}>
                 {waitlistStatus === 'sending' ? '...' : 'Join'}
               </button>

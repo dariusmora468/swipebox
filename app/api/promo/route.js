@@ -20,26 +20,26 @@ function ensureDataDir() {
 }
 
 function getPromoCodes() {
-  ensureDataDir();
-  let fileCodes = [];
-  if (fs.existsSync(PROMO_FILE)) {
-    try {
-      fileCodes = JSON.parse(fs.readFileSync(PROMO_FILE, 'utf8'));
-    } catch {
-      fileCodes = [];
+  // Start with defaults — always available
+  let codes = [...DEFAULT_CODES];
+
+  // Try to load additional codes from file (works locally, not on Vercel)
+  try {
+    ensureDataDir();
+    if (fs.existsSync(PROMO_FILE)) {
+      const fileCodes = JSON.parse(fs.readFileSync(PROMO_FILE, 'utf8'));
+      const defaultSet = new Set(DEFAULT_CODES.map(c => c.code));
+      for (const fc of fileCodes) {
+        if (!defaultSet.has(fc.code)) {
+          codes.push(fc);
+        }
+      }
     }
+  } catch {
+    // Filesystem not available (e.g. Vercel) — defaults are still returned
   }
-  // Always merge defaults — ensures new codes are available even if file was created earlier
-  const existingCodeSet = new Set(fileCodes.map(c => c.code));
-  const merged = [...fileCodes];
-  for (const def of DEFAULT_CODES) {
-    if (!existingCodeSet.has(def.code)) {
-      merged.push(def);
-    }
-  }
-  // Save merged list back
-  fs.writeFileSync(PROMO_FILE, JSON.stringify(merged, null, 2));
-  return merged;
+
+  return codes;
 }
 
 export async function POST(request) {

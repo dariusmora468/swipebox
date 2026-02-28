@@ -3,7 +3,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { getSnoozeTime, addSnoozedEmail, clearExpiredSnoozes } from '../lib/snooze';
 import SnoozePicker from '../components/SnoozePicker';
 import EmailModal from '../components/EmailModal';
-import UnsubscribeOverlay from '../components/UnsubscribeOverlay';
 import SettingsModal from '../components/SettingsModal';
 import EmailCard from '../components/EmailCard';
 import ActionButton from '../components/ActionButton';
@@ -37,9 +36,6 @@ export default function SwipeBox() {
   const [showSettings, setShowSettings] = useState(false);
   const [showSnoozePicker, setShowSnoozePicker] = useState(false);
   const [pendingSnoozeEmail, setPendingSnoozeEmail] = useState(null);
-  const [showUnsubOverlay, setShowUnsubOverlay] = useState(false);
-  const [unsubUrl, setUnsubUrl] = useState(null);
-  const [unsubSender, setUnsubSender] = useState("");
   const [showSwipeSettings, setShowSwipeSettings] = useState(false);
   const [composeState, setComposeState] = useState(null);
   const [swipeMappings, setSwipeMappings] = useState(() => getSwipeMappings());
@@ -259,9 +255,8 @@ export default function SwipeBox() {
               return updated;
             });
             if (unsubData.method === "link" && unsubData.unsubscribeUrl) {
-              setUnsubUrl(unsubData.unsubscribeUrl);
-              setUnsubSender(current.from);
-              setShowUnsubOverlay(true);
+              // Open the unsubscribe page in a new tab so the user can complete it
+              window.open(unsubData.unsubscribeUrl, "_blank");
             }
           }
         } catch (unsubErr) { console.error("Unsub step failed (continuing to delete):", unsubErr); }
@@ -301,9 +296,8 @@ export default function SwipeBox() {
             return updated;
           });
           if (unsubData.method === "link" && unsubData.unsubscribeUrl) {
-            setUnsubUrl(unsubData.unsubscribeUrl);
-            setUnsubSender(current.from);
-            setShowUnsubOverlay(true);
+            // Open the unsubscribe page in a new tab so the user can complete it
+            window.open(unsubData.unsubscribeUrl, "_blank");
           }
         }
         await callAction("unsubscribe", current);
@@ -667,14 +661,6 @@ export default function SwipeBox() {
       )}
 
       {/* Snooze Picker */}
-      {showUnsubOverlay && unsubUrl && (
-        <UnsubscribeOverlay
-          url={unsubUrl}
-          sender={unsubSender}
-          onClose={() => { setShowUnsubOverlay(false); setUnsubUrl(null); }}
-        />
-      )}
-
       {showSnoozePicker && (
         <SnoozePicker
           onSelect={handleSnoozeSelect}
