@@ -13,6 +13,8 @@ import CompletionScreen from '../components/CompletionScreen';
 import LoadingScreen from '../components/LoadingScreen';
 import LoginScreen from '../components/LoginScreen';
 import CelebrationOverlay from '../components/CelebrationOverlay';
+import LandingPage from '../components/LandingPage';
+import Onboarding from '../components/Onboarding';
 
 export default function SwipeBox() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
@@ -48,6 +50,16 @@ export default function SwipeBox() {
     return [];
   });
   const [fetchError, setFetchError] = useState(null);
+
+  // Landing / onboarding flow state
+  const [appView, setAppView] = useState(() => {
+    if (typeof window === 'undefined') return 'loading';
+    // If user has completed onboarding before, skip to app
+    if (localStorage.getItem('swipebox_onboarded') === 'true') return 'app';
+    // If user has a valid promo code, skip to app
+    if (localStorage.getItem('swipebox_promo_validated') === 'true') return 'app';
+    return 'landing';
+  });
 
   // Celebration state
   const [celebration, setCelebration] = useState(null);
@@ -390,6 +402,34 @@ export default function SwipeBox() {
   if (isAuthenticated === null || (isAuthenticated && loading)) {
     return <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#F5F0EB" }}><LoadingScreen message={loadingMessage} /></div>;
   }
+
+  // Landing page for first-time, unauthenticated users
+  if (isAuthenticated === false && appView === 'landing') {
+    return (
+      <LandingPage
+        onGetStarted={() => setAppView('onboarding')}
+        onHaveInvite={() => {
+          // Promo validated — mark onboarded and go to Gmail connect
+          if (typeof window !== 'undefined') localStorage.setItem('swipebox_onboarded', 'true');
+          setAppView('app');
+        }}
+      />
+    );
+  }
+
+  // Interactive onboarding demo
+  if (isAuthenticated === false && appView === 'onboarding') {
+    return (
+      <Onboarding
+        onComplete={() => {
+          if (typeof window !== 'undefined') localStorage.setItem('swipebox_onboarded', 'true');
+          setAppView('app');
+        }}
+      />
+    );
+  }
+
+  // Gmail connect screen (after onboarding or returning users)
   if (isAuthenticated === false) return <LoginScreen />;
 
   if (fetchError) return (
