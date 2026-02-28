@@ -1,7 +1,7 @@
 'use client';
 import GoogleIcon from './GoogleIcon';
 
-function SettingsModal({ accounts, onClose, onRemoveAccount }) {
+function SettingsModal({ accounts, onClose, onRemoveAccount, onSignOut }) {
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 200,
@@ -93,6 +93,19 @@ function SettingsModal({ accounts, onClose, onRemoveAccount }) {
           }}>
             {"\u2709\uFE0F"} Send Feedback
           </a>
+        </div>
+
+        {/* Sign Out */}
+        <div style={{ borderTop: "1px solid rgba(120,100,80,0.08)", marginTop: "20px", paddingTop: "20px" }}>
+          <button onClick={onSignOut} style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+            width: "100%", padding: "14px", borderRadius: "14px",
+            border: "1px solid rgba(176,112,112,0.15)", background: "rgba(176,112,112,0.04)",
+            color: "#B07070", fontSize: "14px", fontWeight: 600,
+            cursor: "pointer",
+          }}>
+            Sign Out
+          </button>
         </div>
 
         {/* Legal links */}

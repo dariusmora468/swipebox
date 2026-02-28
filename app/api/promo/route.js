@@ -6,6 +6,7 @@ const PROMO_FILE = path.join(process.cwd(), 'data', 'promo-codes.json');
 
 // Default promo codes — these are created on first run
 const DEFAULT_CODES = [
+  { code: 'TEST', active: true, description: 'Internal testing code' },
   { code: 'BETA2026', active: true, description: 'General beta invite' },
   { code: 'FRIENDS', active: true, description: 'Friends & family invite' },
   { code: 'SWIPEBOX', active: true, description: 'Early access code' },

@@ -645,6 +645,22 @@ export default function SwipeBox() {
           accounts={accounts}
           onClose={() => setShowSettings(false)}
           onRemoveAccount={handleRemoveAccount}
+          onSignOut={async () => {
+            try {
+              await fetch('/api/auth/signout', { method: 'POST' });
+            } catch {}
+            // Clear onboarding flag so landing page shows
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('swipebox_onboarded');
+              localStorage.removeItem('swipebox_promo_validated');
+              localStorage.removeItem('swipebox_promo_code');
+            }
+            setShowSettings(false);
+            setIsAuthenticated(false);
+            setAppView('landing');
+            setEmails([]);
+            setAccounts([]);
+          }}
         />
       )}
 
