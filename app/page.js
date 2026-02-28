@@ -447,8 +447,8 @@ export default function SwipeBox() {
   );
 
   const totalProcessed = stats.sent + stats.read + stats.snoozed + stats.unsubscribed;
-  const totalEmails = totalProcessed + emails.length;
-  const progressPercent = totalEmails > 0 ? (totalProcessed / totalEmails) * 100 : 0;
+  const totalEmails = initialEmailCount > 0 ? initialEmailCount : emails.length;
+  const progressPercent = totalEmails > 0 ? Math.min((totalProcessed / totalEmails) * 100, 100) : 0;
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#F5F0EB" }}>
